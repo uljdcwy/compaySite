@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" manifest="app.appcache">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <meta http-equiv="Window-target" content="_top">
+    <meta http-equiv="content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <% for(var key in htmlWebpackPlugin.options.CDNList) { %>
+        <script defer="defer" src=<%= 'static/' + key + '/' + htmlWebpackPlugin.options.CDNList[key].split('/').pop() %>></script>
+    <% }%>
+    <% for(var key in htmlWebpackPlugin.options.isStaticCss) { %>
+        <link rel="stylesheet" type="text/css" href=<%= 'static/' + key + '/' + htmlWebpackPlugin.options.isStaticCss[key].split('/').pop() %>>
+    <% }%>
+    <script type="text/javascript">try{global}catch (e){window.global = window;}
+    </script>
+</head>
+<body>
+    <div id="app" data-server-rendered="true"></div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+    "dbData": {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "user": "root",
+        "password": "123",
+        "database": "website"
+    },
+    "accountInfo": {
+        "account": "zhengxiya",
+        "password": "123456789"
+    },
+    "port": 10016,
+    "expression": 14400,
+    "jwtSercert": "zhengxiya",
+    "sercert": "zxy"
+}

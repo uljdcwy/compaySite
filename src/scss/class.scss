@@ -1,0 +1,112 @@
+@mixin font ($font) { font-size: getUnit($font); }
+
+@mixin padding ($t: null,$r: null,$b: null,$l: null) { 
+    padding: padOrMar($t,$r,$b,$l);
+}
+
+@mixin margin ($t: null,$r: null,$b: null,$l: null) { 
+    margin: padOrMar($t,$r,$b,$l);
+}
+
+@mixin height ($h: null) { 
+    height: getUnit($h);
+}
+
+@mixin width ($w: null) { 
+    width: getUnit($w);
+}
+
+
+@mixin border ($type: false, $c: false, $t: false,$r: false,$b: false,$l: false) { 
+    @if $type {
+        border-style: $type;
+    }
+    @if $t and $b and $r and $l {
+        border-top-width: getUnit($t);
+        border-right-width: getUnit($r);
+        border-bottom-width: getUnit($b);
+        border-left-width: getUnit($l);
+    }@else if $t and $b and $r {
+        border-top-width: getUnit($t);
+        border-right-width: getUnit($r);
+        border-bottom-width: getUnit($b);
+    }@else if $t and $b {
+        border-top-width: getUnit($t);
+        border-right-width: getUnit($r);
+    }@else {
+        border-width: getUnit($t);
+    }
+    @if $type {
+        border-color: $c;
+    }
+}
+
+
+@mixin borderRadius ($t: null,$r: null,$b: null,$l: null) { 
+    @if $t and $b and $r and $l {
+        border-top-left-radius: getUnit($t);
+        border-top-right-radius: getUnit($r);
+        border-bottom-right-radius: getUnit($b);
+        border-bottom-left-radius: getUnit($l);
+    }@else if $t and $b and $r {
+        border-top-left-radius: getUnit($t);
+        border-top-right-radius: getUnit($r);
+        border-bottom-right-radius: getUnit($b);
+    }@else if $t and $b {
+        border-top-left-radius: getUnit($t);
+        border-top-right-radius: getUnit($r);
+    }@else {
+        border-radius: getUnit($t);
+    }
+}
+
+
+
+@mixin position ($type: null, $t: null,$r: null,$b: null,$l: null) { 
+    @if $type {
+        position: $type;
+    }
+    @if $t {
+        top: getUnit($t);
+    }
+    @if $r {
+        right: getUnit($r);
+    }
+    @if $b {
+        bottom: getUnit($b);
+    }
+    @if $l {
+        left: getUnit($l);
+    }
+}
+
+@function padOrMar($t: null,$r: null,$b: null,$l: null) {
+    @if $t and $r and $b and $l {
+        @return (getUnit($t) getUnit($r) getUnit($b) getUnit($l));
+    } @else if $t and $r and $b{
+        @return (getUnit($t) getUnit($r) getUnit($b));
+    } @else if $t and $r{
+        @return (getUnit($t) getUnit($r));
+    } @else {
+        @return (getUnit($t));
+    }
+}
+
+@function getUnit($n, $unit: px) {
+    @if $n == 1e15 {
+        @return auto;
+    };
+
+    @if $n {
+        @return $n + $unit;
+    };
+}
+
+
+@mixin boxShadow ( $c: #ccc ,$r: 0, $b: 0, $s: 0, $W: 0, $d: null) {
+    box-shadow: getUnit($r) getUnit($b) getUnit($s) getUnit($W) $c $d;
+}
+
+
+
+

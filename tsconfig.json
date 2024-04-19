@@ -1,0 +1,54 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "strict": true,
+        "baseUrl": ".",
+        "allowJs": true, // TS指向JS有用
+        "checkJs": true, // 检查JS中的TS
+        "moduleResolution": "NodeNext",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "module": "NodeNext",
+        "paths": {
+            "@/*": [
+                "src/*"
+            ],
+            "@wasm/*": [
+                "wasmModule/*"
+            ],
+            "@node/*": [
+                "nodeModule/*"
+            ],
+            "@public/*": [
+                "public/*"
+            ],
+            "@api/*": [
+                "moduleApi/*"
+            ],
+            "@types/*": [
+                "@types/*"
+            ]
+        }
+    },
+    "exclude": [
+        "public/"
+    ],
+    "include": [
+        "@types/Service/sqlRun.d.ts",
+        "@types/Service/EncryptionType.d.ts",
+        "@types/vue-data.d.ts",
+        "@types/utils.d.ts",
+        "@types/router/index.d.ts", // 引入类型文件
+        "@types/es.d.ts", // 引入类型文件
+        "src/*", // 在文件中引用TS检查
+        "moduleApi/", // 自定义的moduleApi
+        "webpackLoads/",
+        "webpackPlugins/",
+        "Services/",
+        "pages/",
+        "preloads/",
+        "webpack/",
+        "c/"
+    ],
+}

@@ -1,0 +1,38 @@
+$borderColor: rgba(100,100,100,0.5);
+
+$mainWidth: 1200;
+$phoneWidth: 100%;
+$minFont: 12;
+$lightColor: #bbb;
+$redColor: #f00;
+$hoverColor: #999;
+$linkColor: #222;
+$defaultColor: #fff;
+$defaultBGColor: rgba(0,0,0,0.1);
+$mainBtnColor: rgb(6, 207, 255);
+$phoneFixedBg: #fff;
+$phoneFixedColor: #666;
+$searchInput: rgba(255,255,255,0.8);
+$navChildBGColor: rgba(255, 255, 0, 0.3);
+$navPhoneBGColor: #000;
+$navPhoneColor: #fff;
+
+
+
+$aboutBg: #efefef;
+$aboutMainBg: #ffffff;
+
+
+$chatWidth: 800;
+$chatHeadColor: #fff;
+$chatHeadBG: #000;
+$chatSelectBG: #000;
+$chatSelectColor: #fff;
+
+a{
+    color: $linkColor;
+    text-decoration: none;
+    &:hover{
+        color: $hoverColor;
+    }
+}

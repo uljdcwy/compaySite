@@ -1,0 +1,14 @@
+**/node_modules/**
+Services/routers/**
+web/**
+node/**
+electron-renderer/**
+electron-preload/**
+mysql/**
+dist/**
+/Services/index.ts
+/Services/config.ts
+/Services/routers/**
+.vs/**
+.temp_cache/**
+**/build/**

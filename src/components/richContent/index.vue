@@ -18,13 +18,15 @@ let dragStatus = false;
 let astDom;
 /**@type {*} */
 const selectAst = [];
+let timerVal = null;
+setTimeout(() => {timerVal = true}, 3000)
 const getEditorJson = (/** @type {any} */ e) => {
   if (e.ctrlKey && e.keyCode == "65") {
+    console.log("粘帖了")
     selectAst.push(...getSelectContent(astDom, selectAst));
   }
   if (agentStart) return;
   setTimeout(() => {
-    // @ts-ignore
     patch({
       oldVdom: astDom,
       newVdom: getDomJson(editMain)
@@ -69,7 +71,9 @@ const mouseup = (e) => {
   if (dragStatus || !selected) {
     return;
   };
+  console.log(astDom,"astDom")
   selectAst.push(...getSelectContent(astDom, selectAst));
+  console.log(selectAst,"selectAst")
   selected = false;
   return false;
 };

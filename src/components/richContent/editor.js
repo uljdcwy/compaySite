@@ -41,45 +41,34 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) 
     if (!dragEnter) updateChildrenSpecifyNode(newVdom)
     let hasChildren = Array.isArray(newVdom && newVdom.children);
     if (oldVdom && newVdom) {
-        let oldP = oldVdom.parent;
-        let newP = newVdom.parent;
-
+        
         let attrStatus = patchAttrs(oldVdom, newVdom);
-
-        if (oldP && newP) {
-            if (oldVdom.tag != newVdom.tag || (dragEnter && attrStatus)) {
-                if (dragEnter) {
-                    mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
-                } else {
-                    patchJson(oldVdom, newVdom);
-                }
-            } else if (!hasChildren && newVdom.children != oldVdom.children) {
+        if (oldVdom.el != newVdom.el || attrStatus || dragEnter) {
+            if (dragEnter) {
+                patchDragEnter(newVdom, oldVdom, rootIdx, deepTagArr);
+            } else {
                 patchJson(oldVdom, newVdom);
-            } else if (oldVdom.children.length != newVdom.children.length) {
-                if (dragEnter) {
-                    patchDragEnter(newVdom, oldVdom, rootIdx, deepTagArr);
-                } else {
-                    patchJson(oldVdom, newVdom);
-                }
-            };
-        };
-        // diff oldVdom or newVdom update
-        hasChildren && newVdom.children.forEach((/** @type {*} */ el, /** @type {*} */ idx) => {
-            let status = patch({
-                oldVdom: oldVdom.children[idx],
-                newVdom: el,
-                rootIdx: idx,
-                dragEnter: dragEnter,
-                deepTagArr: deepTagArr
-            });
-            if (status == "add") {
-                oldVdom.children = Array.isArray(oldVdom.children) ? oldVdom.children : [];
-                oldVdom.children.push(el);
-            } else if (status == "remove") {
-                oldVdom.children[idx] = null;
             }
-        });
-        oldVdom.children && oldVdom.children.filter && (oldVdom.children = oldVdom.children.filter((/** @type {any} */ e) => e));
+        };
+
+        if (hasChildren) {
+            newVdom.children.forEach((/** @type {*} */ el, /** @type {*} */ idx) => {
+                let status = patch({
+                    oldVdom: oldVdom.children[idx],
+                    newVdom: el,
+                    rootIdx: idx,
+                    dragEnter: dragEnter,
+                    deepTagArr: deepTagArr
+                });
+                if (status == "add") {
+                    oldVdom.children = Array.isArray(oldVdom.children) ? oldVdom.children : [];
+                    oldVdom.children.push(el);
+                } else if (status == "remove") {
+                    oldVdom.children[idx] = null;
+                }
+            });
+            oldVdom.children && oldVdom.children.filter && (oldVdom.children = oldVdom.children.filter((/** @type {any} */ e) => e));
+        };
     } else if (!oldVdom && newVdom) {
         if (dragEnter) {
             mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
@@ -102,17 +91,19 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) 
  * @param {*} deepTagArr 
  */
 const patchDragEnter = (newVdom, oldVdom, rootIdx, deepTagArr) => {
-    newVdom.children.forEach((/** @type {*} */ newElem, /** @type {*} */ idxNew) => {
-        let hasCurrentElem;
-        oldVdom.children.forEach((/** @type {*} */ oldElem,/** @type {*} */ idxOld) => {
-            if (newElem.el == oldElem.el) {
-                hasCurrentElem = true;
-            }
+    if(Array.isArray(newVdom.children)){
+        newVdom.children.forEach((/** @type {*} */ newElem, /** @type {*} */ idxNew) => {
+            let hasCurrentElem;
+            oldVdom.children && oldVdom.children.forEach((/** @type {*} */ oldElem,/** @type {*} */ idxOld) => {
+                if (newElem.el == oldElem.el) {
+                    hasCurrentElem = true;
+                }
+            });
+            if (!hasCurrentElem) {
+                mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
+            };
         });
-        if (!hasCurrentElem) {
-            mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
-        };
-    });
+    }
 }
 
 /**
@@ -428,11 +419,11 @@ const resetDivAttrs = (divEl) => {
  * @param {*} newJson 
  */
 export const patchJson = (oldJson, newJson) => {
-    oldJson.tag = newJson.tag;
-    oldJson.nodeType = newJson.nodeType;
-    oldJson.position = newJson.position;
-    oldJson.el = newJson.el;
-    oldJson.children = newJson.children;
+    Object.keys(newJson).map((el) => {
+        if (el != "parent") {
+            oldJson[el] = newJson[el]
+        }
+    });
     updateJsonParentEl(oldJson, newJson);
 };
 
@@ -443,7 +434,7 @@ export const patchJson = (oldJson, newJson) => {
  */
 const updateJsonParentEl = (oldJson, newJson) => {
     if (oldJson.parent && newJson.parent && newJson.parent.el && oldJson.parent.el) {
-        oldJson.parent.el = newJson.parent.el;
+        oldJson.parent.el = newJson.parent.el
         if (newJson.parent.parent) {
             updateJsonParentEl(oldJson.parent, newJson.parent)
         }
@@ -517,7 +508,7 @@ const patchAttrs = (oldVdom, newVdom) => {
         if (newAttr[key] !== resetUndefined && oldAttr[key] != newAttr[key]) {
             oldAttr[key] = newAttr[key];
             oldVdom.el.setAttribute(key, newAttr[key]);
-            if(!attrStatus) attrStatus = true;
+            if (!attrStatus) attrStatus = true;
             delete newAttr[key];
         } else if (oldAttr[key] == newAttr[key]) {
             delete newAttr[key];
@@ -530,7 +521,7 @@ const patchAttrs = (oldVdom, newVdom) => {
     for (let key in newAttr) {
         oldAttr[key] = newAttr[key];
         oldVdom.el.setAttribute(key, newAttr[key]);
-        if(!attrStatus) attrStatus = true;
+        if (!attrStatus) attrStatus = true;
     };
     return attrStatus;
 };
@@ -705,7 +696,6 @@ export const getSelectContent = (astDom, selectAst) => {
     // 选择
     if (startTextEl == astDom.el) { return []; };
     resetSelectPosition(selectAst);
-
     let startDeepArr = getDeepArr(astDom.el, startTextEl);
     let endDeepArr = getDeepArr(astDom.el, endTextEl);
     let selectAstContent = updateAstSelect(astDom, startDeepArr, startOffset, endDeepArr, endOffset);
@@ -753,6 +743,7 @@ const updateAstSelect = (astDom, startDeepArr, startOffset, endDeepArr, endOffse
     });
     let startAst = getMiddleSelectAst(startDeepArr, startElem, direction, startOffset, "start");
     let endAst = getMiddleSelectAst(endDeepArr, endElem, (direction == "up" ? "down" : "up"), endOffset, "end");
+
     if (startElem.position[1] == endElem.position[1]) {
         startAst.forEach((el, idx) => {
             if (endAst.indexOf(el) < 0) {
@@ -761,7 +752,7 @@ const updateAstSelect = (astDom, startDeepArr, startOffset, endDeepArr, endOffse
         });
         selectAst = startAst.filter(e => e);
     } else {
-        selectAst = startAst.concat(endAst);
+        selectAst = startAst
         let paragraphLists = astDom.children;
         let startIdx = startElem.position[1];
         let endIdx = endElem.position[1];
@@ -771,7 +762,8 @@ const updateAstSelect = (astDom, startDeepArr, startOffset, endDeepArr, endOffse
         }
         for (let i = endIdx + 1; i < startIdx; i++) {
             selectAst = selectAst.concat(getChildTreeAst([], paragraphLists[i]));
-        }
+        };
+        selectAst = selectAst.concat(endAst);
     };
     return selectAst;
 };
@@ -823,7 +815,7 @@ const getMiddleSelectAst = (deepArr, childAstVDom, direction, offset, position) 
                 } else {
                     childAstVDom.selected = direction == "up" ? [0, offset] : [offset, childAstVDom.children.length];
                 }
-                returnSelectAst.push(childAstVDom.parent);
+                returnSelectAst.push(getParentVdom(childAstVDom, "span"));
             };
         } else if (childLen > 1) {
             // 如果索引为0时并且 当前节点的父节点有子节点数量为1为选中当前节点
@@ -918,7 +910,6 @@ export const bold = (selectAst) => {
     boldText(selectAst);
 };
 
-
 /**
  * 
  * @param {*} selectAst 
@@ -927,30 +918,31 @@ const boldText = (selectAst) => {
     selectAst.map && selectAst.map((/** @type {*} */ elem) => {
         if (elem.nodeType == "text") {
             if (hasTagName(elem, "strong")) {
-                return;
-            };
-            let strong = createElement("strong");
-            let select = elem.selected;
-            let textNode = elem.el;
-            if (select) {
-                if (select[1] != elem.children.length && select[0] == 0) {
-                    let splitText = elem.el.splitText(select[1]);
-                    createSpanFillText(splitText, "after");
-                    textNode = elem.el;
-                } else if (select[1] == elem.children.length && select[0] == 0) {
-                    textNode = elem.el;
-                } else if (select[1] == elem.children.length && select[0] != 0) {
-                    textNode = elem.el.splitText(select[0]);
-                    createSpanFillText(elem.el, "insert");
-                } else {
-                    let splitLast = elem.el.splitText(select[1]);
-                    createSpanFillText(splitLast, "after");
-                    textNode = elem.el.splitText(select[0]);
-                    createSpanFillText(elem.el, "insert");
-                }
-            };
-            replaceChild(elem.parent.el, strong, textNode);
-            appendChild(strong, textNode);
+                unBoldText(elem);
+            } else {
+                let strong = createElement("strong");
+                let select = elem.selected;
+                let textNode = elem.el;
+                if (select) {
+                    if (select[1] != elem.children.length && select[0] == 0) {
+                        let splitText = elem.el.splitText(select[1]);
+                        createSpanFillText(splitText, "after");
+                        textNode = elem.el;
+                    } else if (select[1] == elem.children.length && select[0] == 0) {
+                        textNode = elem.el;
+                    } else if (select[1] == elem.children.length && select[0] != 0) {
+                        textNode = elem.el.splitText(select[0]);
+                        createSpanFillText(elem.el, "insert");
+                    } else {
+                        let splitLast = elem.el.splitText(select[1]);
+                        createSpanFillText(splitLast, "after");
+                        textNode = elem.el.splitText(select[0]);
+                        createSpanFillText(elem.el, "insert");
+                    }
+                };
+                replaceChild(elem.parent.el, strong, textNode);
+                appendChild(strong, textNode);
+            }
         } else {
             boldText(elem.children);
         }
@@ -1010,7 +1002,6 @@ const cloneNode = (oldElem, status) => {
  * @param {*} childNode 
  */
 const appendChild = (parentNode, childNode) => {
-    console.log(parentNode,"parentNode", childNode)
     return parentNode.appendChild(childNode);
 };
 
@@ -1032,10 +1023,48 @@ const createTextNode = (string) => {
     return document.createTextNode(string);
 };
 
+/**
+ * 
+ * @param {*} astVdom 
+ * @param {*} tagName 
+ * @returns {*}
+ */
+const getParentVdom = (astVdom, tagName) => {
+    if (astVdom.tag == tagName) {
+        return astVdom;
+    } else if (astVdom.parent) {
+        return getParentVdom(astVdom.parent, tagName);
+    }
+}
+
+/**
+ * 
+ * @param {*} astVdom 
+ * @returns {*}
+ */
+const getLeafText = (astVdom) => {
+    if (astVdom.nodeType == "text") {
+        return astVdom;
+    } else if (Array.isArray(astVdom.children)) {
+        return getLeafText(astVdom.children[0]);
+    }
+}
 
 // 解除加粗选中文本
-const unBoldText = () => {
+/**
+ * 
+ * @param {*} astVdom 
+ */
+const unBoldText = (astVdom) => {
+    let getLeafTextVdom = getLeafText(astVdom);
+    let leafSpanVdom = getParentVdom(getLeafTextVdom, "span");
+    let leafStrongVdom = getParentVdom(getLeafTextVdom, "strong");
+    if (typeof leafStrongVdom.children[0].children == "string" && leafStrongVdom.parent == leafSpanVdom) {
+        appendChild(leafSpanVdom.el, leafStrongVdom.children[0].el);
+        removeChild(leafStrongVdom);
+    } else {
 
+    }
 };
 
 /**
@@ -1055,8 +1084,7 @@ const getDeepArr = (root, findPositionEl, deepArr = []) => {
     };
 
     deepArr.unshift(childIdx);
-    if (findPositionEl.parentNode
-        != root) {
+    if (findPositionEl.parentNode != root) {
         getDeepArr(root, findPositionEl.parentNode, deepArr);
     };
     return deepArr;
@@ -1067,12 +1095,12 @@ const getDeepArr = (root, findPositionEl, deepArr = []) => {
  * @param {*} astDom 
  */
 export const getCurrentMouseElem = (astDom) => {
-    if(!astDom.children) return ;
+    if (!astDom.children) return;
     let selects = winGetSelection();
     let rootDom = astDom.el;
-    let deepArr, pasetVdom,pack,
-    /**@type {*} */
-    tagArr;
+    let deepArr, pasetVdom, pack,
+        /**@type {*} */
+        tagArr;
     if (astDom.el != selects.anchorNode) {
         tagArr = []
         deepArr = getDeepArr(rootDom, selects.anchorNode);
@@ -1183,9 +1211,8 @@ const getDeepTagArr = (leafVdom, tagArr) => {
 const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) => {
     let vDomParent = Vdom.parent;
     if (vDomParent && vDomParent.parent && !preVdom) {
-        mergeRootChildren(vDomParent, preVdom, defaultIndex, deepTagArr)
-    };
-
+        mergeRootChildren(vDomParent, preVdom, defaultIndex, deepTagArr);
+    }
     if (!preVdom) {
         if (vDomParent && !vDomParent.parent) {
             preVdom = getCurrentVDomPrevVDom(vDomParent, Vdom);
@@ -1201,7 +1228,13 @@ const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) 
         const defaultNode = createDefaultRootAndLeaf();
         rootBlock = defaultNode[0];
         leafElem = defaultNode[1];
-        replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
+        const rootVdom = getRootDom(Vdom);
+        if (rootVdom == Vdom.parent && typeof Vdom.children == "string") {
+            appendChild(leafElem, createTextNode(Vdom.children))
+            replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
+        } else {
+            replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
+        };
     } else if (preVdom.tag) {
         const defaultNode = createDefaultRootAndLeaf(deepTagArr);
         rootBlock = defaultNode[0];
@@ -1217,7 +1250,6 @@ const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) 
             rootBlock = defaultNode[0];
             leafElem = defaultNode[1];
             let rootVdom = getRootDom(Vdom);
-            console.log(deepTagArr, "deepTagArr", rootBlock, "rootBlock")
             appendChild(rootVdom.el, rootBlock);
         }
     };
@@ -1313,15 +1345,15 @@ export const getImage = (event) => {
 export const clearSelectContent = (selectAst) => {
     selectAst.forEach((/** @type {*} */ elem, /** @type {*} */ idx) => {
         let hasSelectedTextVdom = childrenHasSelect(elem);
-        if(hasSelectedTextVdom){
+        if (hasSelectedTextVdom) {
             let endOffset = hasSelectedTextVdom.selected[1];
             let childrenlen = hasSelectedTextVdom.children.length;
             let startOffset = hasSelectedTextVdom.selected[0];
             if (childrenlen == endOffset && startOffset == 0) {
                 clearParentNull(elem);
-            }else if (startOffset == 0 && endOffset != childrenlen) {
+            } else if (startOffset == 0 && endOffset != childrenlen) {
                 removeChild(hasSelectedTextVdom, hasSelectedTextVdom.el.splitText(endOffset))
-            }else if (endOffset == childrenlen && startOffset != 0) {
+            } else if (endOffset == childrenlen && startOffset != 0) {
                 hasSelectedTextVdom.el.splitText(endOffset);
                 removeChild(hasSelectedTextVdom, hasSelectedTextVdom.el);
             } else {
@@ -1329,7 +1361,7 @@ export const clearSelectContent = (selectAst) => {
                 let startElem = splitElem.splitText(startOffset);
                 removeChild(hasSelectedTextVdom, splitElem);
             }
-        }else{
+        } else {
             clearParentNull(elem);
         }
         // elem.el.
@@ -1342,7 +1374,7 @@ export const clearSelectContent = (selectAst) => {
  */
 const clearParentNull = (astVdom) => {
     removeChild(astVdom);
-    if(astVdom.parent && astVdom.parent.children && astVdom.parent.children.length == 1){
+    if (astVdom.parent && astVdom.parent.children && astVdom.parent.children.length == 1) {
         clearParentNull(astVdom.parent);
     }
 }
@@ -1354,11 +1386,11 @@ const clearParentNull = (astVdom) => {
  */
 const childrenHasSelect = (astVdom) => {
     let childrens = astVdom.children;
-    for(let i = 0; i < childrens.length; i++){
+    for (let i = 0; i < childrens.length; i++) {
         let elem = childrens[i];
-        if(elem.selected){
+        if (elem.selected) {
             return elem
-        }else if(Array.isArray(elem.children)){
+        } else if (Array.isArray(elem.children)) {
             return childrenHasSelect(elem)
         }
     }
@@ -1370,9 +1402,9 @@ const childrenHasSelect = (astVdom) => {
  * @param {*} el 
  */
 const removeChild = (astVdom, el = null) => {
-    if(el){
+    if (el) {
         astVdom.parent.el.removeChild(el);
-    }else{
+    } else {
         astVdom.parent.el.removeChild(astVdom.el);
     }
 }

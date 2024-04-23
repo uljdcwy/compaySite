@@ -905,21 +905,24 @@ const deepClearSelected = (childrens) => {
 /**
  * 
  * @param {*} selectAst 
+ * @param {*} status 
  */
-export const bold = (selectAst) => {
-    boldText(selectAst);
+export const bold = (selectAst, status = false) => {
+    boldText(selectAst, status);
 };
 
 /**
  * 
  * @param {*} selectAst 
+ * @param {*} unBoldStatus 
  */
-const boldText = (selectAst) => {
+const boldText = (selectAst, unBoldStatus) => {
     selectAst.map && selectAst.map((/** @type {*} */ elem) => {
         if (elem.nodeType == "text") {
-            if (hasTagName(elem, "strong")) {
+            let hasStrong = hasTagName(elem, "strong");
+            if (unBoldStatus && hasStrong) {
                 unBoldText(elem);
-            } else {
+            } else if(!unBoldStatus && !hasStrong) {
                 let strong = createElement("strong");
                 let select = elem.selected;
                 let textNode = elem.el;
@@ -944,7 +947,7 @@ const boldText = (selectAst) => {
                 appendChild(strong, textNode);
             }
         } else {
-            boldText(elem.children);
+            boldText(elem.children, unBoldStatus);
         }
     })
 };
@@ -1059,12 +1062,8 @@ const unBoldText = (astVdom) => {
     let getLeafTextVdom = getLeafText(astVdom);
     let leafSpanVdom = getParentVdom(getLeafTextVdom, "span");
     let leafStrongVdom = getParentVdom(getLeafTextVdom, "strong");
-    if (typeof leafStrongVdom.children[0].children == "string" && leafStrongVdom.parent == leafSpanVdom) {
-        appendChild(leafSpanVdom.el, leafStrongVdom.children[0].el);
-        removeChild(leafStrongVdom);
-    } else {
-
-    }
+    appendChild(leafSpanVdom.el, leafStrongVdom.children[0].el);
+    removeChild(leafStrongVdom);
 };
 
 /**

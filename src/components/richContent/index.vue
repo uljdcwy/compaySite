@@ -1,6 +1,7 @@
 <template>
   <div id="toolbar"></div>
   <button class="bold-text" @click="boldSelects">加粗文本</button>
+  <button class="bold-text" @click="unblodText">解除加粗</button>
   <div id="editMain" contenteditable="true" @keyup="getEditorJson" style="height: 120px;background-color: #f00;">
   </div>
 </template>
@@ -23,7 +24,7 @@ setTimeout(() => {timerVal = true}, 3000)
 const getEditorJson = (/** @type {any} */ e) => {
   if (e.ctrlKey && e.keyCode == "65") {
     console.log("粘帖了")
-    selectAst.push(...getSelectContent(astDom, selectAst));
+    // electAst.push(...getSelectContent(astDom, selectAst));
   }
   if (agentStart) return;
   setTimeout(() => {
@@ -35,10 +36,16 @@ const getEditorJson = (/** @type {any} */ e) => {
 };
 
 const boldSelects = () => {
-  if (!selectAst[0]) {
-    selectAst.push(...getSelectContent(astDom, selectAst));
-  }
+  selectAst.push(...getSelectContent(astDom, selectAst));
   bold(selectAst);
+  patch({
+    oldVdom: astDom,
+    newVdom: getDomJson(editMain)
+  });
+};
+const unblodText = () => {
+  selectAst.push(...getSelectContent(astDom, selectAst));
+  bold(selectAst, true);
   patch({
     oldVdom: astDom,
     newVdom: getDomJson(editMain)
@@ -71,9 +78,7 @@ const mouseup = (e) => {
   if (dragStatus || !selected) {
     return;
   };
-  console.log(astDom,"astDom")
-  selectAst.push(...getSelectContent(astDom, selectAst));
-  console.log(selectAst,"selectAst")
+  // selectAst.push(...getSelectContent(astDom, selectAst));
   selected = false;
   return false;
 };
@@ -124,7 +129,6 @@ const updateEnter = () => {
       dragEnter: true,
       deepTagArr: deepTagArr
     });
-    astDom = getDomJson(editMain);
   });
 }
 
@@ -181,7 +185,9 @@ onUnmounted(() => {
 #edit-main {
   min-height: 30px;
 }
-
+p{
+  margin-bottom: 15px
+}
 #editMain {
   min-height: 160px;
   overflow-y: scroll;

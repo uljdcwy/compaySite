@@ -1,14 +1,18 @@
 <template>
-  <div id="toolbar"></div>
-  <button class="bold-text" @click="boldSelects">加粗文本</button>
-  <button class="bold-text" @click="unblodText">解除加粗</button>
-  <div id="editMain" contenteditable="true" @keyup="getEditorJson" style="height: 120px;background-color: #f00;">
-  </div>
+    <div id="toolbar"></div>
+    <button class="bold-text" @click="boldSelects">加粗文本</button>
+    <button class="bold-text" @click="unblodSelects">解除加粗</button>
+    <button class="bold-text" @click="underlineSelects">添加下划线</button>
+    <button class="bold-text" @click="unUnderlineSelects">解除下划线</button>
+    <button class="bold-text" @click="italicsSelects">添加斜体</button>
+    <button class="bold-text" @click="unItalicsSelects">解除斜体</button>
+    <div id="editMain" contenteditable="true" @keyup="getEditorJson" style="height: 120px;background-color: #f00;">
+    </div>
 </template>
 
 <script setup>
 import { effect, onMounted, onUnmounted } from 'vue';
-import { getDomJson, patch, getSelectContent, bold, getCurrentMouseElem, formatPaste, clearSelectContent } from "./editor.js";
+    import { getDomJson, patch, getSelectContent, bold, getCurrentMouseElem, italics, underline, resetSelectPosition } from "./editor.js";
 /** @type { any } */
 let editMain;
 let agentStart = false;
@@ -19,12 +23,8 @@ let dragStatus = false;
 let astDom;
 /**@type {*} */
 const selectAst = [];
-let timerVal = null;
-setTimeout(() => {timerVal = true}, 3000)
 const getEditorJson = (/** @type {any} */ e) => {
   if (e.ctrlKey && e.keyCode == "65") {
-    console.log("粘帖了")
-    // electAst.push(...getSelectContent(astDom, selectAst));
   }
   if (agentStart) return;
   setTimeout(() => {
@@ -36,20 +36,34 @@ const getEditorJson = (/** @type {any} */ e) => {
 };
 
 const boldSelects = () => {
-  selectAst.push(...getSelectContent(astDom, selectAst));
-  bold(selectAst);
-  patch({
-    oldVdom: astDom,
-    newVdom: getDomJson(editMain)
-  });
+    selectAndUpdate(bold, selectAst);
 };
-const unblodText = () => {
-  selectAst.push(...getSelectContent(astDom, selectAst));
-  bold(selectAst, true);
-  patch({
-    oldVdom: astDom,
-    newVdom: getDomJson(editMain)
-  });
+const unblodSelects = () => {
+    selectAndUpdate(bold, selectAst, true);
+}
+
+const underlineSelects = () => {
+    selectAndUpdate(underline, selectAst);
+}
+
+const unUnderlineSelects = () => {
+    selectAndUpdate(underline, selectAst, true);
+ }
+
+const italicsSelects = () => {
+    selectAndUpdate(italics, selectAst);
+ }
+
+const unItalicsSelects = () => {
+    selectAndUpdate(italics, selectAst, true);
+}
+
+const selectAndUpdate = (cb, selectAst, status) => {
+    selectAst.push(...getSelectContent(astDom, selectAst));
+    if (!selectAst[0]) return;
+    cb && cb(selectAst, status);
+    resetSelectPosition(selectAst);
+    console.log(astDom,"astDom")
 }
 
 const startAgentFn = () => {

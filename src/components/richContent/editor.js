@@ -216,6 +216,7 @@ const breadthCycle = (deepArr = [], domEl, root = [], parent, breadthIdx = 0) =>
         el: domEl,
         position: deepPositionArr,
         children: [],
+        index: breadthIdx,
         parent: parent,
         key: getuuid(24),
         attrs: getAttrs(domEl, nodeType),
@@ -319,7 +320,9 @@ const getStyle = function (ele) {
 /**@type {*} */
 const inlineDisplayList = ["inline", "inline-block"];
 /**@type {*} */
-const inlineElemList = ["img", "select", "textarea", "input", "button", "a", "abbr", "acronym", "b", "bdo", "big", "br", "cite", "code", "dfn", "em", "i", "kbd", "label", "q", "samp", "select", "small", "span", "strong", "sub", "sup", "textarea", "tt", "var"];
+const inlineElemList = ["img", "select", "textarea", "input", "button", "a", "abbr", "acronym",
+    "b", "bdo", "big", "br", "cite", "code", "dfn", "em", "i", "kbd", "label", "q", "samp", "select",
+    "small", "span", "strong", "sub", "sup", "textarea", "tt", "var", "u"];
 // 查看是否是行级元素否则默认为块级元素
 /**
  * 
@@ -336,7 +339,7 @@ const isInlineElem = (Vdom) => {
     }
 };
 
-const richLeafArr = ["i", "strong", "span"];
+const richLeafArr = ["u", "i", "strong", "span"];
 
 // 判断是否是富文本的指定标签
 /**
@@ -415,16 +418,37 @@ const resetDivAttrs = (divEl) => {
 
 /**
  * 
- * @param {*} oldJson 
- * @param {*} newJson 
+ * @param {any} oldJson
+ * @param {any} newJson
+ * @param {any} firstInit
  */
-export const patchJson = (oldJson, newJson) => {
+export const patchJson = (oldJson, newJson, firstInit = true) => {
+    if (Array.isArray(newJson.children)) {
+        let oldIsArray = Array.isArray(oldJson.children);
+        oldJson.children = oldIsArray ? oldJson.children : [];
+        newJson.children.forEach((elem, idx) => {
+            if (!oldJson.children[idx]) {
+                oldJson.children[idx] = {};
+            }
+            patchJson(oldJson.children[idx], elem, false)
+        })
+    }
     Object.keys(newJson).map((el) => {
-        if (el != "parent") {
-            oldJson[el] = newJson[el]
+        if (el == "selected" && oldJson[el] || firstInit && el == "parent") {
+            if (el == "selected" && oldJson[el]) {
+                newJson[el] = oldJson[el];
+            }
+            return;
         }
+        oldJson[el] = newJson[el]
     });
-    updateJsonParentEl(oldJson, newJson);
+
+    if (firstInit) {
+        updateJsonParentEl(oldJson, newJson);
+        newJson.children.forEach((el) => {
+            el.parent = oldJson;
+        })
+    }
 };
 
 /**
@@ -695,13 +719,20 @@ export const getSelectContent = (astDom, selectAst) => {
 
     // 选择
     if (startTextEl == astDom.el) { return []; };
-    resetSelectPosition(selectAst);
-    let startDeepArr = getDeepArr(astDom.el, startTextEl);
-    let endDeepArr = getDeepArr(astDom.el, endTextEl);
+    let startDeepArr = getDeepArr(astDom.el, getSelectTextElem(startTextEl));
+    let endDeepArr = getDeepArr(astDom.el, getSelectTextElem(endTextEl));
     let selectAstContent = updateAstSelect(astDom, startDeepArr, startOffset, endDeepArr, endOffset);
     return selectAstContent
 
 };
+
+const getSelectTextElem = (domElem) => {
+    if (domElem.nodeType == 1) {
+        return getSelectTextElem(domElem.childNodes[0])
+    } else {
+        return domElem;
+    }
+}
 
 /**
  * 
@@ -729,18 +760,8 @@ const updateAstSelect = (astDom, startDeepArr, startOffset, endDeepArr, endOffse
      */
     let selectAst = [];
     // 移动方向 结束位置大小起始位置 也就是向下选择
-    endDeepArr.some((/** @type {number} */ el, /** @type {string | number} */ idx) => {
-        if (idx == (endDeepArr.length - 1) && !direction) {
-            direction = "down";
-            return true;
-        } else if (el > startDeepArr[idx]) {
-            direction = "down";
-            return true;
-        } else if (el < startDeepArr[idx]) {
-            direction = "up";
-            return true
-        }
-    });
+    direction = getMouseDirection(endDeepArr, startDeepArr);
+    
     let startAst = getMiddleSelectAst(startDeepArr, startElem, direction, startOffset, "start");
     let endAst = getMiddleSelectAst(endDeepArr, endElem, (direction == "up" ? "down" : "up"), endOffset, "end");
 
@@ -767,6 +788,30 @@ const updateAstSelect = (astDom, startDeepArr, startOffset, endDeepArr, endOffse
     };
     return selectAst;
 };
+
+/**
+ * 
+ * @param {any} endDeepArr
+ * @param {any} startDeepArr
+ * @returns
+ */
+const getMouseDirection = (endDeepArr, startDeepArr) => {
+    let direction;
+    endDeepArr.some((/** @type {number} */ el, /** @type {string | number} */ idx) => {
+        if (idx == (endDeepArr.length - 1) && !direction) {
+            direction = "down";
+            return true;
+        } else if (el > startDeepArr[idx]) {
+            direction = "down";
+            return true;
+        } else if (el < startDeepArr[idx]) {
+            direction = "up";
+            return true
+        }
+    });
+    return direction;
+}
+
 /**
  * 
  * @param {*} deepArr 
@@ -787,16 +832,17 @@ const getMiddleSelectAst = (deepArr, childAstVDom, direction, offset, position) 
         let childrens = childAstVDom.parent.children;
         let childLen = childrens.length;
         let deepCopyArrLen = deepCopyArr.length;
+        let threeStr = position;
         if (deepCopyArrLen == (deepArrLen - 1)) {
             if (childLen > 1) {
                 let selectAst;
                 returnSelectAst = returnSelectAst.concat(childrens);
                 if (direction == "up") {
                     selectAst = returnSelectAst[returnSelectAst.length - 1];
-                    selectAst.selected = position == "start" ? [0, offset] : [offset, childAstVDom.children.length];
+                    selectAst.selected = position == "start" ? [0, offset, threeStr] : [offset, childAstVDom.children.length, threeStr];
                 } else {
                     selectAst = returnSelectAst[0];
-                    selectAst.selected = position == "start" ? [offset, childAstVDom.children.length] : [0, offset];
+                    selectAst.selected = position == "start" ? [offset, childAstVDom.children.length, , threeStr] : [0, offset, threeStr];
                 }
             } else {
                 if (childAstVDom.selected) {
@@ -813,7 +859,7 @@ const getMiddleSelectAst = (deepArr, childAstVDom, direction, offset, position) 
                         selectedArr[0] = origin;
                     }
                 } else {
-                    childAstVDom.selected = direction == "up" ? [0, offset] : [offset, childAstVDom.children.length];
+                    childAstVDom.selected = direction == "up" ? [0, offset, threeStr] : [offset, childAstVDom.children.length, threeStr];
                 }
                 returnSelectAst.push(getParentVdom(childAstVDom, "span"));
             };
@@ -870,17 +916,76 @@ const getSelectAst = (astDom, deepArr) => {
     return startElemAst;
 };
 
+const resetSelectRange = (selectAst) => {
+    let startElement, endtElement, startOffset, endOffset;
+
+    if (selectAst.length == 1) {
+        let textVdom = getLeafText(selectAst[0]);
+        startElement = textVdom;
+        endtElement = textVdom;
+        startOffset = textVdom.selected && textVdom.selected[1];
+        endOffset = textVdom.selected && textVdom.selected[0];
+    } else {
+        selectAst.forEach((elem, idx) => {
+            let textVdom = getLeafText(elem);
+
+            if (textVdom.selected) {
+                if (textVdom.selected[2] == "start") {
+                    startElement = textVdom
+                    startOffset = textVdom.selected[1];
+                } else if (textVdom.selected[2] == "end") {
+                    endtElement = textVdom;
+                    endOffset = textVdom.selected[0];
+                }
+            }
+            // 判断向上选还是向下选
+            // 改动获取选择值的方式，有BUG需要调整
+        });
+    }
+
+    if (!endtElement || !startElement) {
+        const selection = winGetSelection();
+        selection.removeAllRanges();
+        return;
+    }
+
+    if (startElement != endtElement) {
+        let d = getMouseDirection(endtElement.position, startElement.position);
+        if (d == "down") {
+            let cacheStart = startElement;
+            startElement = endtElement;
+            endtElement = cacheStart;
+            endOffset = endtElement.selected[0];
+            startOffset = startElement.selected[1];
+        }
+    }
+
+
+    const selection = winGetSelection();
+    const range = createRange();
+    range.setStart(endtElement.el, endOffset);
+    range.setEnd(startElement.el, startOffset);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+}
+
+const createRange = () => {
+    return document.createRange();
+}
+
+
+
 /**
  * 
  * @param {*} selectAst 
  */
 export const resetSelectPosition = (selectAst) => {
+    resetSelectRange(selectAst);
     let select = selectAst.pop();
     while (select) {
-        if (select.selected) {
-            select.selected = null
-
-        };
+        deleteVdomSelected(select);
         deepClearSelected(select.children);
         select = selectAst.pop();
     };
@@ -893,13 +998,19 @@ export const resetSelectPosition = (selectAst) => {
 const deepClearSelected = (childrens) => {
     if (Array.isArray(childrens)) {
         childrens.forEach((elem, idx) => {
-            if (elem.selected) { elem.selected = null };
+            deleteVdomSelected(elem);
             if (elem.children) {
                 deepClearSelected(elem.children);
             }
         })
     }
 };
+
+const deleteVdomSelected = (select) => {
+    if (select.selected) {
+        select.selected = null;
+    };
+}
 
 // 加粗选中文本
 /**
@@ -908,7 +1019,25 @@ const deepClearSelected = (childrens) => {
  * @param {*} status 
  */
 export const bold = (selectAst, status = false) => {
-    boldText(selectAst, status);
+    appendTagToText(selectAst, status, "strong");
+};
+
+/**
+ * 
+ * @param {any} selectAst
+ * @param {any} status
+ */
+export const underline = (selectAst, status = false) => {
+    appendTagToText(selectAst, status, "u");
+};
+
+/**
+ * 
+ * @param {any} selectAst
+ * @param {any} status
+ */
+export const italics = (selectAst, status = false) => {
+    appendTagToText(selectAst, status, "i");
 };
 
 /**
@@ -916,38 +1045,87 @@ export const bold = (selectAst, status = false) => {
  * @param {*} selectAst 
  * @param {*} unBoldStatus 
  */
-const boldText = (selectAst, unBoldStatus) => {
+const appendTagToText = (selectAst, unBoldStatus, appendLeafTag) => {
     selectAst.map && selectAst.map((/** @type {*} */ elem) => {
         if (elem.nodeType == "text") {
-            let hasStrong = hasTagName(elem, "strong");
-            if (unBoldStatus && hasStrong) {
-                unBoldText(elem);
-            } else if(!unBoldStatus && !hasStrong) {
-                let strong = createElement("strong");
+            let selectedArr;
+            let hasLeafTag = hasTagName(elem, appendLeafTag);
+            if (unBoldStatus && hasLeafTag) {
+                unTagName(elem, appendLeafTag);
+            } else if (!unBoldStatus && !hasLeafTag) {
+                let appendElem = createElement(appendLeafTag);
                 let select = elem.selected;
                 let textNode = elem.el;
+                let splitTextArr = [];
+                let spanLeafVdom = getParentVdom(elem, "span");
+                let detaultIdx = spanLeafVdom.index;
+                let PVdom = getParentVdom(elem);
+                let childrens = PVdom.children;
+                let newJson;
                 if (select) {
+                    selectedArr = elem.selected;
+                    deleteVdomSelected(elem);
+                    if (select[0] == 0 && select[1] == 0) {
+                        return;
+                    };
                     if (select[1] != elem.children.length && select[0] == 0) {
                         let splitText = elem.el.splitText(select[1]);
-                        createSpanFillText(splitText, "after");
+                        let splitLeafVdom = createSpanFillText(splitText, "after");
                         textNode = elem.el;
+                        splitTextArr.push(textNode); ``
+                        splitTextArr.push(splitLeafVdom);
                     } else if (select[1] == elem.children.length && select[0] == 0) {
                         textNode = elem.el;
+                        // 压入数组最后一截文字
+                        splitTextArr.unshift(textNode);
                     } else if (select[1] == elem.children.length && select[0] != 0) {
                         textNode = elem.el.splitText(select[0]);
-                        createSpanFillText(elem.el, "insert");
+                        // 压入数组最后一截文字
+                        splitTextArr.unshift(textNode);
+                        // 最开始一截文字用元素包住
+                        splitTextArr.unshift(createSpanFillText(elem.el, "insert"));
                     } else {
                         let splitLast = elem.el.splitText(select[1]);
-                        createSpanFillText(splitLast, "after");
+                        // 最后一截文字用元素包住
+                        splitTextArr.push(createSpanFillText(splitLast, "after"));
+                        // 中间一截文字
                         textNode = elem.el.splitText(select[0]);
-                        createSpanFillText(elem.el, "insert");
+                        // 压入数组最中间一截文字
+                        splitTextArr.unshift(textNode);
+                        // 最开始一截文字用元素包住
+                        splitTextArr.unshift(createSpanFillText(elem.el, "insert"));
                     }
-                };
-                replaceChild(elem.parent.el, strong, textNode);
-                appendChild(strong, textNode);
-            }
+                } else {
+                    replaceChild(elem.parent.el, appendElem, textNode);
+                    appendChild(appendElem, textNode);
+                    newJson = getDomJson(spanLeafVdom.el, PVdom.position, detaultIdx);
+                    patchJson(spanLeafVdom, newJson);
+                    return;
+                }
+                splitTextArr.map((el, idx) => {
+                    if (el == textNode) {
+                        replaceChild(elem.parent.el, appendElem, textNode);
+                        appendChild(appendElem, textNode);
+                        newJson = getDomJson(spanLeafVdom.el, PVdom.position, detaultIdx + idx);
+                        let textLeafVdom = getLeafText(newJson);
+                        selectedArr[0] = 0;
+                        selectedArr[1] = textLeafVdom.children.length;
+                        textLeafVdom.selected = selectedArr;
+                        patchJson(spanLeafVdom, newJson);
+                    } else {
+                        newJson = getDomJson(el, PVdom.position, detaultIdx + idx);
+                        childrens.splice(detaultIdx + idx, 0, newJson);
+                        newJson.parent = PVdom;
+                    }
+                });
+                return;
+            };
+            let rootVdom = getParentVdom(elem);
+            let position = rootVdom.position;
+            const newJson = getDomJson(rootVdom.el, position, position[position.length - 1]);
+            patchJson(rootVdom, newJson);
         } else {
-            boldText(elem.children, unBoldStatus);
+            appendTagToText(elem.children, unBoldStatus, appendLeafTag);
         }
     })
 };
@@ -967,6 +1145,7 @@ const afterElement = (/** @type {any} */ parentNode, /** @type {any} */ afterNod
 
 const createSpanFillText = (/** @type {any} */ fillText, /** @type {any} */ direction) => {
     if (fillText.textContent == "" || fillText.tagName && fillText.tagName.toLocaleLowerCase() == "br") return;
+    // 此处需要收集部分到根节点的序列组创建添加
     let span = createElement("span");
     let parentNode = fillText.parentNode;
     appendChild(span, fillText);
@@ -975,6 +1154,7 @@ const createSpanFillText = (/** @type {any} */ fillText, /** @type {any} */ dire
     } else {
         inertElement(parentNode, span);
     }
+    return span;
 };
 
 /**
@@ -1033,7 +1213,9 @@ const createTextNode = (string) => {
  * @returns {*}
  */
 const getParentVdom = (astVdom, tagName) => {
-    if (astVdom.tag == tagName) {
+    if (tagName && astVdom.tag == tagName) {
+        return astVdom;
+    } else if (richRootArr.indexOf(astVdom.tag) > -1) {
         return astVdom;
     } else if (astVdom.parent) {
         return getParentVdom(astVdom.parent, tagName);
@@ -1053,18 +1235,43 @@ const getLeafText = (astVdom) => {
     }
 }
 
-// 解除加粗选中文本
 /**
  * 
- * @param {*} astVdom 
+ * @param {any} astVdom
+ * @param {any} tagName
  */
-const unBoldText = (astVdom) => {
+const unTagName = (astVdom, tagName) => {
     let getLeafTextVdom = getLeafText(astVdom);
     let leafSpanVdom = getParentVdom(getLeafTextVdom, "span");
-    let leafStrongVdom = getParentVdom(getLeafTextVdom, "strong");
-    appendChild(leafSpanVdom.el, leafStrongVdom.children[0].el);
-    removeChild(leafStrongVdom);
+    let leafElemVdom = getParentVdom(getLeafTextVdom, tagName);
+    appendChild(leafElemVdom.parent.el, leafElemVdom.children[0].el);
+    removeChild(leafElemVdom);
+    mergeSpan(getLeafTextVdom);
 };
+
+const mergeSpan = (vDom) => {
+    let vP = vDom.parent;
+    if (vP.tag == "span" && vDom.nodeType == "text") {
+        let sameLevels = vDom.parent.parent.children;
+        let prevVdom, nextVdom;
+        sameLevels.forEach((elem, idx) => {
+            if (elem == vP) {
+                let prevIdx = idx - 1;
+                let nextIdx = idx + 1;
+                prevVdom = sameLevels[prevIdx];
+                nextVdom = sameLevels[nextIdx];
+                if (nextVdom.children && nextVdom.children[0] && nextVdom.children[0].nodeType == "text") {
+                    addTextContent(vP.el, nextVdom.children[0].el);
+                    sameLevels.splice(nextIdx, 1);
+                };
+                if (prevVdom.children && prevVdom.children[0] && prevVdom.children[0].nodeType == "text") {
+                    addTextContent(vP.el, prevVdom.children[0].el);
+                    sameLevels.splice(prevIdx, 1);
+                };
+            };
+        });
+    }
+}
 
 /**
  * 
@@ -1093,16 +1300,15 @@ const getDeepArr = (root, findPositionEl, deepArr = []) => {
  * 
  * @param {*} astDom 
  */
-export const getCurrentMouseElem = (astDom) => {
+export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().anchorNode) => {
     if (!astDom.children) return;
-    let selects = winGetSelection();
     let rootDom = astDom.el;
     let deepArr, pasetVdom, pack,
         /**@type {*} */
         tagArr;
-    if (astDom.el != selects.anchorNode) {
+    if (astDom.el != anchorNode) {
         tagArr = []
-        deepArr = getDeepArr(rootDom, selects.anchorNode);
+        deepArr = getDeepArr(rootDom, anchorNode);
         pasetVdom = getSelectAst(astDom, deepArr);
         getDeepTagArr(pasetVdom, tagArr)
     }
@@ -1194,7 +1400,9 @@ const createDefaultRootAndLeaf = (defaultTagArr = ["p", "span"]) => {
 const getDeepTagArr = (leafVdom, tagArr) => {
     if (leafVdom.parent && leafVdom.parent.parent) {
         tagArr.unshift(leafVdom.parent.tag);
-        getDeepTagArr(leafVdom.parent, tagArr);
+        return getDeepTagArr(leafVdom.parent, tagArr);
+    } else {
+        return tagArr;
     }
 }
 

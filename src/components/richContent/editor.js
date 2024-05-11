@@ -290,11 +290,18 @@ const replaceSpecify = (elVDom) => {
 
 /**
  * 
- * @param {*} nodeElement 
- * @param {*} TextNode 
+ * @param {any} nodeElement
+ * @param {any} TextNode
+ * @param {any} direction
+ * @returns
  */
-const addTextContent = (nodeElement, TextNode) => {
-    nodeElement.textContent = nodeElement.textContent + TextNode.textContent;
+const addTextContent = (nodeElement, TextNode, direction = "after") => {
+    console.log(nodeElement.textContent, "nodeElement.textContent", direction)
+    if (direction == "insert") {
+        nodeElement.textContent = TextNode.textContent + nodeElement.textContent;
+    } else {
+        nodeElement.textContent = nodeElement.textContent + TextNode.textContent;
+    }
     return nodeElement.textContent;
 }
 // 获取当前代码块中的最低子元素标签
@@ -1094,36 +1101,31 @@ const appendTagToText = (selectAst, unBoldStatus, appendLeafTag) => {
                         splitTextArr.unshift(textNode);
                         // 最开始一截文字用元素包住
                         splitTextArr.unshift(createSpanFillText(elem.el, "insert"));
-                    }
+                    };
+
+                    splitTextArr.map((el, idx) => {
+                        if (el == textNode) {
+                            replaceChild(elem.parent.el, appendElem, textNode);
+                            appendChild(appendElem, textNode);
+                            newJson = getDomJson(spanLeafVdom.el, PVdom.position, detaultIdx + idx);
+                            let textLeafVdom = getLeafText(newJson);
+                            selectedArr[0] = 0;
+                            selectedArr[1] = textLeafVdom.children.length;
+                            textLeafVdom.selected = selectedArr;
+                            patchJson(spanLeafVdom, newJson);
+                        } else {
+                            newJson = getDomJson(el, PVdom.position, detaultIdx + idx);
+                            childrens.splice(detaultIdx + idx, 0, newJson);
+                            newJson.parent = PVdom;
+                        }
+                    });
                 } else {
                     replaceChild(elem.parent.el, appendElem, textNode);
                     appendChild(appendElem, textNode);
                     newJson = getDomJson(spanLeafVdom.el, PVdom.position, detaultIdx);
                     patchJson(spanLeafVdom, newJson);
-                    return;
                 }
-                splitTextArr.map((el, idx) => {
-                    if (el == textNode) {
-                        replaceChild(elem.parent.el, appendElem, textNode);
-                        appendChild(appendElem, textNode);
-                        newJson = getDomJson(spanLeafVdom.el, PVdom.position, detaultIdx + idx);
-                        let textLeafVdom = getLeafText(newJson);
-                        selectedArr[0] = 0;
-                        selectedArr[1] = textLeafVdom.children.length;
-                        textLeafVdom.selected = selectedArr;
-                        patchJson(spanLeafVdom, newJson);
-                    } else {
-                        newJson = getDomJson(el, PVdom.position, detaultIdx + idx);
-                        childrens.splice(detaultIdx + idx, 0, newJson);
-                        newJson.parent = PVdom;
-                    }
-                });
-                return;
             };
-            let rootVdom = getParentVdom(elem);
-            let position = rootVdom.position;
-            const newJson = getDomJson(rootVdom.el, position, position[position.length - 1]);
-            patchJson(rootVdom, newJson);
         } else {
             appendTagToText(elem.children, unBoldStatus, appendLeafTag);
         }
@@ -1242,35 +1244,55 @@ const getLeafText = (astVdom) => {
  */
 const unTagName = (astVdom, tagName) => {
     let getLeafTextVdom = getLeafText(astVdom);
-    let leafSpanVdom = getParentVdom(getLeafTextVdom, "span");
     let leafElemVdom = getParentVdom(getLeafTextVdom, tagName);
     appendChild(leafElemVdom.parent.el, leafElemVdom.children[0].el);
     removeChild(leafElemVdom);
+    let leafSpanVdom = getParentVdom(getLeafTextVdom, "span");
+    let newjson = getDomJson(leafSpanVdom.el);
+    patchJson(leafSpanVdom, newjson);
+    getLeafTextVdom = getLeafText(leafSpanVdom);
     mergeSpan(getLeafTextVdom);
 };
 
-const mergeSpan = (vDom) => {
-    let vP = vDom.parent;
-    if (vP.tag == "span" && vDom.nodeType == "text") {
-        let sameLevels = vDom.parent.parent.children;
-        let prevVdom, nextVdom;
-        sameLevels.forEach((elem, idx) => {
-            if (elem == vP) {
-                let prevIdx = idx - 1;
-                let nextIdx = idx + 1;
-                prevVdom = sameLevels[prevIdx];
-                nextVdom = sameLevels[nextIdx];
-                if (nextVdom.children && nextVdom.children[0] && nextVdom.children[0].nodeType == "text") {
-                    addTextContent(vP.el, nextVdom.children[0].el);
-                    sameLevels.splice(nextIdx, 1);
-                };
-                if (prevVdom.children && prevVdom.children[0] && prevVdom.children[0].nodeType == "text") {
-                    addTextContent(vP.el, prevVdom.children[0].el);
-                    sameLevels.splice(prevIdx, 1);
-                };
-            };
-        });
+/**
+ * 
+ * @param {any} textVdom
+ */
+const mergeSpan = (textVdom) => {
+    let leafSpanVdom = getParentVdom(textVdom, "span");
+    let someLevels = leafSpanVdom.parent.children;
+    let currentIndex;
+    someLevels.forEach((elem, idx) => {
+        let getLeafTextVdom = getLeafText(elem);
+        if (textVdom == getLeafTextVdom) {
+            currentIndex = idx
+        }
+    })
+
+    let prevIdx = currentIndex - 1;
+    let nextIdx = currentIndex + 1;
+    let currentVdom = someLevels[currentIndex];
+    let prevVdom = someLevels[prevIdx];
+    let nextVdom = someLevels[nextIdx];
+    if (currentVdom.children.length != 1 || currentVdom.children[0].nodeType != "text") {
+        return;
     }
+    if (prevVdom && prevVdom.children.length == 1 && prevVdom.children[0].nodeType == "text") {
+        addTextContent(currentVdom.el, prevVdom.el, "insert")
+        removeChild(prevVdom);
+        someLevels[prevIdx] = null;
+    }
+    if (nextVdom && nextVdom.children.length == 1 && nextVdom.children[0].nodeType == "text") {
+        addTextContent(currentVdom.el, nextVdom.el)
+        removeChild(nextVdom);
+        someLevels[nextIdx] = null;
+    };
+    someLevels = someLevels.filter((e) => e);
+    someLevels.forEach((elem, idx) => {
+        let newJson = getDomJson(elem.el, elem.parent.position, idx);
+        patchJson(elem, newJson)
+    });
+    leafSpanVdom.parent.children = someLevels
 }
 
 /**

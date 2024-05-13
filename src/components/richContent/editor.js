@@ -45,7 +45,9 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) 
         let attrStatus = patchAttrs(oldVdom, newVdom);
         if (oldVdom.el != newVdom.el || attrStatus || dragEnter) {
             if (dragEnter) {
-                patchDragEnter(newVdom, oldVdom, rootIdx, deepTagArr);
+                if (oldVdom.el != newVdom.el || !attrStatus) {
+                    patchDragEnter(newVdom, oldVdom, rootIdx, deepTagArr);
+                }
             } else {
                 patchJson(oldVdom, newVdom);
             }
@@ -75,10 +77,8 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) 
         } else {
             deepUpdateChildrenSpacifyNode(newVdom);
         }
-        // update newVdom to oldVdom
         return 'add';
     } else if (oldVdom && !newVdom) {
-        // remove oldVdom
         return 'remove';
     }
 };
@@ -94,12 +94,17 @@ const patchDragEnter = (newVdom, oldVdom, rootIdx, deepTagArr) => {
     if(Array.isArray(newVdom.children)){
         newVdom.children.forEach((/** @type {*} */ newElem, /** @type {*} */ idxNew) => {
             let hasCurrentElem;
-            oldVdom.children && oldVdom.children.forEach((/** @type {*} */ oldElem,/** @type {*} */ idxOld) => {
-                if (newElem.el == oldElem.el) {
-                    hasCurrentElem = true;
-                }
-            });
+            if (Array.isArray(oldVdom.children)) {
+                oldVdom.children.forEach((/** @type {*} */ oldElem,/** @type {*} */ idxOld) => {
+                    console.log(newElem.el == oldElem.el, "newElem.el == oldElem.el", newElem.el, oldElem.el)
+                    if (newElem.el == oldElem.el) {
+                        hasCurrentElem = true;
+                    }
+                });
+            };
+            console.log(hasCurrentElem, "hasCurrentElem", idxNew, "idxNew", newElem,"newElem")
             if (!hasCurrentElem) {
+                console.log(hasCurrentElem, "hasCurrentElem", newVdom)
                 mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
             };
         });
@@ -296,7 +301,6 @@ const replaceSpecify = (elVDom) => {
  * @returns
  */
 const addTextContent = (nodeElement, TextNode, direction = "after") => {
-    console.log(nodeElement.textContent, "nodeElement.textContent", direction)
     if (direction == "insert") {
         nodeElement.textContent = TextNode.textContent + nodeElement.textContent;
     } else {
@@ -1432,28 +1436,36 @@ const getDeepTagArr = (leafVdom, tagArr) => {
 /**
  * 
  * @param {*} Vdom 
- * @param {*} preVdom 
+ * @param {*} rootVdom 
  * @param {*} defaultIndex 
  * @param {*} deepTagArr 
  * @returns 
  */
-const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) => {
+const mergeRootChildren = (Vdom, rootVdom = false, defaultIndex = 0, deepTagArr) => {
     let vDomParent = Vdom.parent;
-    if (vDomParent && vDomParent.parent && !preVdom) {
-        mergeRootChildren(vDomParent, preVdom, defaultIndex, deepTagArr);
+    // 找一级元素
+    if (vDomParent && vDomParent.parent && !rootVdom) {
+        // 继续上向找
+        mergeRootChildren(vDomParent, rootVdom, defaultIndex, deepTagArr);
     }
-    if (!preVdom) {
+    if (!rootVdom) {
+        // 如果没有parent也就是在根节点
         if (vDomParent && !vDomParent.parent) {
-            preVdom = getCurrentVDomPrevVDom(vDomParent, Vdom);
+            // 获取当前
+            rootVdom = getCurrentVDomPrevVDom(vDomParent, Vdom);
         }
     };
-    if (!preVdom) return;
+    // 如果没有找到结速当前递归
+    if (!rootVdom) {
+        return;
+    }
     /**
      * @type {*}
      */
     let leafElem, rootBlock;
     let childres = Vdom.children;
-    if (preVdom == "first") {
+    // 如果是第一个Vdom
+    if (rootVdom == "first") {
         const defaultNode = createDefaultRootAndLeaf();
         rootBlock = defaultNode[0];
         leafElem = defaultNode[1];
@@ -1464,17 +1476,18 @@ const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) 
         } else {
             replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
         };
-    } else if (preVdom.tag) {
+    } else if (rootVdom.tag) {
+        console.log(rootVdom,"rootVdom")
         const defaultNode = createDefaultRootAndLeaf(deepTagArr);
         rootBlock = defaultNode[0];
         leafElem = defaultNode[1];
         replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
+        // 在这里加其他的匹配标签逻辑
     } else {
-        leafElem = preVdom;
+        leafElem = rootVdom;
         if (Vdom.nodeType == "text") {
-            // appendChild(preVdom, Vdom.el);
-            addTextContent(preVdom, Vdom.el);
-        } else if (childres && childrenISinline(childres) && !isInlineElem(Vdom)) {
+            addTextContent(rootVdom, Vdom.el);
+        } else if (!isInlineElem(Vdom)) {
             const defaultNode = createDefaultRootAndLeaf(deepTagArr);
             rootBlock = defaultNode[0];
             leafElem = defaultNode[1];
@@ -1489,7 +1502,7 @@ const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) 
         });
     };
 
-    if (preVdom.tag || preVdom == "first") {
+    if (rootVdom.tag || rootVdom == "first") {
         const jsonToDiv = getDomJson(rootBlock, Vdom.parent.position, defaultIndex);
         patchAttrs(Vdom, jsonToDiv);
         patchJson(Vdom, jsonToDiv);
@@ -1503,17 +1516,20 @@ const mergeRootChildren = (Vdom, preVdom = false, defaultIndex = 0, deepTagArr) 
  */
 const getCurrentVDomPrevVDom = (rootVdom, Vdom) => {
     let rootChildrens = rootVdom.children;
-    let preVdom;
+    let vdom;
+    // 在根节点子vDom 找Vdom
     rootChildrens.forEach((/** @type {any} */ elem, /** @type {number} */ idx) => {
         if (Vdom == elem) {
+            // 如果是第0个则vdom 等于first
             if (!idx) {
-                preVdom = "first";
+                vdom = "first";
+                // 否则vdom 为当前索引的子序列
             } else {
-                preVdom = rootChildrens[idx];
+                vdom = rootChildrens[idx];
             }
         }
     });
-    return preVdom;
+    return vdom;
 }
 
 /**

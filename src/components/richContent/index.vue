@@ -12,7 +12,7 @@
 
 <script setup>
 import { effect, onMounted, onUnmounted } from 'vue';
-    import { getDomJson, patch, getSelectContent, bold, getCurrentMouseElem, italics, underline, resetSelectPosition } from "./editor.js";
+import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition } from "./editor.js";
 /** @type { any } */
 let editMain;
 let agentStart = false;
@@ -24,7 +24,8 @@ let astDom;
 /**@type {*} */
 const selectAst = [];
 const getEditorJson = (/** @type {any} */ e) => {
-  if (e.ctrlKey && e.keyCode == "65") {
+  if (e.ctrlKey && e.keyCode == "65" || e.ctrlKey && e.keyCode == "86" || !e.ctrlKey && e.keyCode == "17") {
+    return;
   }
   if (agentStart) return;
   setTimeout(() => {
@@ -32,6 +33,7 @@ const getEditorJson = (/** @type {any} */ e) => {
       oldVdom: astDom,
       newVdom: getDomJson(editMain)
     });
+      console.log(astDom,"astDom")
   })
 };
 
@@ -102,19 +104,16 @@ const mouseup = (e) => {
  * @param {*} event 
  */
 const paste = (event) => {
-  updateEnter();
-  // event.preventDefault();
-  // clearSelectContent(selectAst);
-  // // @ts-ignore
-  // let paste = (event.clipboardData || window.clipboardData).getData("text");
+  event.preventDefault();
+  // @ts-ignore
+  let paste = (event.clipboardData || window.clipboardData).getData("text");
 
-  // if (paste && typeof paste == "string") {
-  //   let textElement = formatPaste(paste, astDom);
-  //   astDom = getDomJson(editMain);
-  // } else {
-  //   let file = getImage(event);
-  // }
-  // return false;
+    if (paste && typeof paste == "string") {
+        updateEnter(paste);
+   } else {
+     let file = getImage(event);
+    }
+   return false;
 }
 
 
@@ -126,28 +125,21 @@ const mousemove = (/** @type {any} */ e) => {
  * 
  * @param {*} e 
  */
-const dragend = (e) => {
-  dragStatus = false;
-  updateEnter();
+const dragend = (event) => {
+    let dragText = event.dataTransfer.getData("text/plain");
+    dragStatus = false;
+    updateEnter(dragText);
+    event.preventDefault();
+    return false;
 }
 
 
-const updateEnter = () => {
-  const deepTagArr = getCurrentMouseElem(astDom);
-  setTimeout(() => {
-    let newAst = getDomJson(editMain);
-    // @ts-ignore
-    patch({
-      oldVdom: astDom,
-      newVdom: newAst,
-      dragEnter: true,
-      deepTagArr: deepTagArr
-    });
-  });
+const updateEnter = (contentText) => {
+    patchDragEnter(astDom, contentText);
 }
 
-const dragenter = () => {
-  dragStatus = true;
+const dragenter = (event) => {
+    dragStatus = true;
 }
 
 const dragleave = () => {

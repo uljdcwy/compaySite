@@ -38,25 +38,15 @@ export const stringJson = (/** @type {{ children: any; attrs: { [x: string]: str
  */
 export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) => {
     // 比较旧的VDOM与新的VDOM将有差异的收集到数组，后更新数组数据，在初次比较时更新特殊标签的处理
-    if (!dragEnter) updateChildrenSpecifyNode(newVdom)
+    updateChildrenSpecifyNode(newVdom);
     let hasChildren = Array.isArray(newVdom && newVdom.children);
     if (oldVdom && newVdom) {
-        
-        let attrStatus = patchAttrs(oldVdom, newVdom);
-        if (oldVdom.el != newVdom.el || attrStatus || dragEnter) {
-            if (dragEnter) {
-                if (oldVdom.el != newVdom.el || !attrStatus) {
-                    patchDragEnter(newVdom, oldVdom, rootIdx, deepTagArr);
-                }
-            } else {
-                patchJson(oldVdom, newVdom);
-            }
-        };
-
-        if (hasChildren) {
+        const hasArrChildren = Array.isArray(newVdom.children);
+        if (hasArrChildren) {
             newVdom.children.forEach((/** @type {*} */ el, /** @type {*} */ idx) => {
+                const currentVdom = oldVdom.children[idx];
                 let status = patch({
-                    oldVdom: oldVdom.children[idx],
+                    oldVdom: currentVdom,
                     newVdom: el,
                     rootIdx: idx,
                     dragEnter: dragEnter,
@@ -64,51 +54,112 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) 
                 });
                 if (status == "add") {
                     oldVdom.children = Array.isArray(oldVdom.children) ? oldVdom.children : [];
-                    oldVdom.children.push(el);
+                    const newJson = getDomJson(el.el, oldVdom.parent.position, idx);
+                    newJson.parent = oldVdom;
+                    oldVdom.children.splice(idx, 0, newJson);
                 } else if (status == "remove") {
-                    oldVdom.children[idx] = null;
+                    oldVdom.children.splice(idx, 1);
                 }
             });
-            oldVdom.children && oldVdom.children.filter && (oldVdom.children = oldVdom.children.filter((/** @type {any} */ e) => e));
-        };
-    } else if (!oldVdom && newVdom) {
-        if (dragEnter) {
-            mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
         } else {
-            deepUpdateChildrenSpacifyNode(newVdom);
+            patchJson(oldVdom, newVdom);
         }
+    } else if (!oldVdom && newVdom) {
+        deepUpdateChildrenSpacifyNode(newVdom);
         return 'add';
     } else if (oldVdom && !newVdom) {
         return 'remove';
     }
 };
 
-/**
- * 
- * @param {*} newVdom 
- * @param {*} oldVdom 
- * @param {*} rootIdx 
- * @param {*} deepTagArr 
- */
-const patchDragEnter = (newVdom, oldVdom, rootIdx, deepTagArr) => {
-    if(Array.isArray(newVdom.children)){
-        newVdom.children.forEach((/** @type {*} */ newElem, /** @type {*} */ idxNew) => {
-            let hasCurrentElem;
-            if (Array.isArray(oldVdom.children)) {
-                oldVdom.children.forEach((/** @type {*} */ oldElem,/** @type {*} */ idxOld) => {
-                    console.log(newElem.el == oldElem.el, "newElem.el == oldElem.el", newElem.el, oldElem.el)
-                    if (newElem.el == oldElem.el) {
-                        hasCurrentElem = true;
-                    }
-                });
-            };
-            console.log(hasCurrentElem, "hasCurrentElem", idxNew, "idxNew", newElem,"newElem")
-            if (!hasCurrentElem) {
-                console.log(hasCurrentElem, "hasCurrentElem", newVdom)
-                mergeRootChildren(newVdom, false, rootIdx, deepTagArr);
-            };
+
+export const patchDragEnter = (astDom, contentText) => {
+    // 格式化内容文本并返回一个数组
+    const lineDomArr = formatPaste(contentText);
+    // 获取当位置属性
+    const mouseSelect = winGetSelection();
+    const anchorNode = mouseSelect.anchorNode;
+    const anchorOffset = mouseSelect.anchorOffset;
+    // 获取当前光标位置的astDom
+    // 获取 deep tag name
+    const [anchorNodeVdom, deepTagArr] = getCurrentMouseElem(astDom, anchorNode, true);
+
+    // 当返回的数据大于1时   说明有换行
+    if (lineDomArr.length > 1) {
+
+        const firstRootVdom = getParentVdom(anchorNodeVdom);
+        const leafVdom = getParentVdom(anchorNodeVdom, "span");
+        console.log(leafVdom, "leafVdom", anchorNodeVdom)
+        const [lastRootDom, lastLeafDom] = createDefaultRootAndLeaf(deepTagArr);
+        const moveBaseIndex = leafVdom.index;
+        let hasSplitText = anchorOffset != anchorNodeVdom.children.length;
+        leafVdom.parent.children.forEach((elem, idx) => {
+            if (hasSplitText) {
+                appendChild(lastLeafDom, anchorNodeVdom.el.splitText(anchorOffset));
+            }
+            if (idx > moveBaseIndex) {
+                appendChild(lastRootDom, elem.el);
+            }
         });
-    }
+
+        const [rootElem, leafElem] = createDefaultRootAndLeaf(deepTagArr);
+
+        const rootChildrens = firstRootVdom.parent.children;
+        const deepArr = firstRootVdom.parent.position;
+
+        const defaultIndex = firstRootVdom.index;
+
+        let lastAnchorElem = rootChildrens[defaultIndex + 1];
+        lastAnchorElem = lastAnchorElem && lastAnchorElem.el;
+        const lastIndex = lineDomArr.length - 1 + defaultIndex;
+
+        // 切出位置并分割出两个内容组
+        lineDomArr.forEach((elem, idx) => {
+            let dom;
+            if (idx == 0) {
+                addTextContent(leafVdom.el, createTextNode(elem));
+                // rootChildrens.splice(idx, 1, getDomJson(firstRootVdom.el, deepArr, defaultIndex));
+            } else if (idx == lineDomArr.length - 1) {
+                addTextContent(lastLeafDom, createTextNode(elem), "insert");
+                dom = lastRootDom;
+            } else {
+                if (elem) {
+                    const [rootElem, leafElem] = createDefaultRootAndLeaf(deepTagArr);
+                    addTextContent(leafElem, createTextNode(elem));
+                    dom = rootElem;
+                } else {
+                    const [rootElem, leafElem] = createDefaultRootAndLeaf();
+                    appendChild(leafElem, createElement("br"));
+                    dom = rootElem;
+                };
+            };
+            if (dom) {
+                console.log(lastAnchorElem, "lastAnchorElem", firstRootVdom,"firstRootVdom")
+                if (lastAnchorElem) {
+                    inertElement(lastAnchorElem, dom);
+                } else {
+                    appendChild(firstRootVdom.parent.el, dom);
+                };
+                let rootVDom = getDomJson(dom, deepArr, defaultIndex + idx);
+                rootChildrens.splice(idx, 0, rootVDom);
+                rootVDom.parent = firstRootVdom.parent;
+            }
+        });
+
+        rootChildrens.forEach((elem, idx) => {
+            if (idx >= lastIndex) {
+                patchJson(elem, getDomJson
+                    (elem.el, deepArr, idx));
+            }
+        });
+
+        // 说明没有换行直接在光标位置添加文本内容
+    } else {
+        // 获取光标位置的文本;
+        addTextContent(anchorNode, createTextNode(contentText), anchorOffset);
+        let newJson = getDomJson(anchorNodeVdom.el, anchorNodeVdom.parent.position, 0);
+        patchJson(anchorNodeVdom, newJson);
+    };
 }
 
 /**
@@ -123,7 +174,7 @@ const updateChildrenSpecifyNode = (newVdom) => {
  * @param {*} newVDom 
  */
 const deepUpdateChildrenSpacifyNode = (newVDom) => {
-    newVDom.children && newVDom.children.forEach((/** @type {*} */ elem, /** @type {any} */ idx) => {
+    Array.isArray(newVDom.children) && newVDom.children.forEach((/** @type {*} */ elem, /** @type {any} */ idx) => {
         if (Array.isArray(elem.children)) {
             deepUpdateChildrenSpacifyNode(elem);
         } else {
@@ -303,6 +354,11 @@ const replaceSpecify = (elVDom) => {
 const addTextContent = (nodeElement, TextNode, direction = "after") => {
     if (direction == "insert") {
         nodeElement.textContent = TextNode.textContent + nodeElement.textContent;
+    } else if (typeof direction == "number") {
+        let textContent = nodeElement.textContent;
+        let startText = textContent.substr(0, direction);
+        let endText = textContent.substr(direction, textContent.length);
+        nodeElement.textContent = startText + TextNode.textContent + endText;
     } else {
         nodeElement.textContent = nodeElement.textContent + TextNode.textContent;
     }
@@ -434,31 +490,35 @@ const resetDivAttrs = (divEl) => {
  * @param {any} firstInit
  */
 export const patchJson = (oldJson, newJson, firstInit = true) => {
-    if (Array.isArray(newJson.children)) {
+    const hasArrChildren = Array.isArray(newJson.children);
+    if (hasArrChildren) {
         let oldIsArray = Array.isArray(oldJson.children);
         oldJson.children = oldIsArray ? oldJson.children : [];
         newJson.children.forEach((elem, idx) => {
             if (!oldJson.children[idx]) {
                 oldJson.children[idx] = {};
-            }
-            patchJson(oldJson.children[idx], elem, false)
-        })
-    }
-    Object.keys(newJson).map((el) => {
-        if (el == "selected" && oldJson[el] || firstInit && el == "parent") {
-            if (el == "selected" && oldJson[el]) {
-                newJson[el] = oldJson[el];
-            }
-            return;
-        }
-        oldJson[el] = newJson[el]
-    });
+                oldJson.children[idx].parent = oldJson;
 
-    if (firstInit) {
+            }
+            patchJson(oldJson.children[idx], elem, false);
+
+        });
+    }
+
+    for (let key in newJson) {
+        //开发查看
+        if (hasArrChildren && key == 'children' || key == "parent") {
+            continue;
+        }
+        if (key == "selected" && oldJson[key]) {
+            newJson[key] = oldJson[key];
+        } else {
+            oldJson[key] = newJson[key];
+        }
+    }
+
+    if (firstInit && !newJson.parent) {
         updateJsonParentEl(oldJson, newJson);
-        newJson.children.forEach((el) => {
-            el.parent = oldJson;
-        })
     }
 };
 
@@ -468,14 +528,7 @@ export const patchJson = (oldJson, newJson, firstInit = true) => {
  * @param {*} newJson 
  */
 const updateJsonParentEl = (oldJson, newJson) => {
-    if (oldJson.parent && newJson.parent && newJson.parent.el && oldJson.parent.el) {
-        oldJson.parent.el = newJson.parent.el
-        if (newJson.parent.parent) {
-            updateJsonParentEl(oldJson.parent, newJson.parent)
-        }
-    } else if (!newJson.parent && oldJson.parent) {
-        newJson.parent = oldJson.parent;
-    };
+    newJson.parent = oldJson.parent;
 };
 
 // 添加段落标签
@@ -1324,9 +1377,12 @@ const getDeepArr = (root, findPositionEl, deepArr = []) => {
 
 /**
  * 
- * @param {*} astDom 
+ * @param {any} astDom
+ * @param {any} anchorNode
+ * @param {any} backVdom
+ * @returns
  */
-export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().anchorNode) => {
+export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().anchorNode, backVdom = false) => {
     if (!astDom.children) return;
     let rootDom = astDom.el;
     let deepArr, pasetVdom, pack,
@@ -1338,7 +1394,11 @@ export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().ancho
         pasetVdom = getSelectAst(astDom, deepArr);
         getDeepTagArr(pasetVdom, tagArr)
     }
-    return tagArr[0] ? tagArr : pack;
+    if (backVdom) {
+        return [pasetVdom, tagArr]
+    } else {
+        return tagArr[0] ? tagArr : pack;
+    }
 }
 
 /**
@@ -1347,55 +1407,11 @@ export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().ancho
  * @param {*} astDom 
  * @returns 
  */
-export const formatPaste = (pasetText, astDom) => {
-    let selects = winGetSelection();
-    let deepArr, offsetLeft, pasetVdom, inserVdom, insertElem, tagArr;
-    /**@type {*} */
+const formatPaste = (pasetText) => {
     let lineReg = /(.+)\r?\n/;
-    let regText = lineReg.exec(pasetText);
-    let rootDom = astDom.el;
-
-    if (astDom.el != selects.anchorNode) {
-        deepArr = getDeepArr(rootDom, selects.anchorNode);
-        offsetLeft = selects.anchorOffset;
-        pasetVdom = getSelectAst(astDom, deepArr);
-        inserVdom = astDom.children[deepArr[0]];
-        if (pasetVdom.children.length == offsetLeft) {
-            tagArr = tagArr || [];
-            getDeepTagArr(pasetVdom, tagArr);
-        } else if (offsetLeft == 0) {
-            tagArr = tagArr || [];
-            getDeepTagArr(pasetVdom, tagArr);
-        } else {
-            tagArr = tagArr || [];
-        }
-    } else {
-        insertElem = rootDom.lastChild;
-    };
-
-    // console.log(regText, "regText", pasetText)
-    while (regText) {
-        pasetText = pasetText.substr(regText[0].length);
-        const currentLineData = regText[1];
-        let rootAndLeaf = createDefaultRootAndLeaf(tagArr);
-        // addTextContent(rootAndLeaf[1], createTextNode(currentLineData.replace(/(\s+)/, (a, b, c) => {
-        //     if (b && b.length) {
-        //         let val = new Array(b.length).fill("\r\n").join("");
-        //         return val;
-        //     } else {
-        //         return "";
-        //     }
-        // })));
-        addTextContent(rootAndLeaf[1], createTextNode(currentLineData));
-        if (insertElem) {
-            afterElement(insertElem, rootAndLeaf[0]);
-        } else {
-            appendChild(rootDom, rootAndLeaf[0]);
-        }
-        insertElem = rootAndLeaf[0]
-        regText = lineReg.exec(pasetText);
-    };
-    return regText;
+    let lineArr = pasetText.split(/\r?\n/);
+    console.log(lineArr, "lineArr");
+    return lineArr;
 }
 
 /**
@@ -1442,71 +1458,6 @@ const getDeepTagArr = (leafVdom, tagArr) => {
  * @returns 
  */
 const mergeRootChildren = (Vdom, rootVdom = false, defaultIndex = 0, deepTagArr) => {
-    let vDomParent = Vdom.parent;
-    // 找一级元素
-    if (vDomParent && vDomParent.parent && !rootVdom) {
-        // 继续上向找
-        mergeRootChildren(vDomParent, rootVdom, defaultIndex, deepTagArr);
-    }
-    if (!rootVdom) {
-        // 如果没有parent也就是在根节点
-        if (vDomParent && !vDomParent.parent) {
-            // 获取当前
-            rootVdom = getCurrentVDomPrevVDom(vDomParent, Vdom);
-        }
-    };
-    // 如果没有找到结速当前递归
-    if (!rootVdom) {
-        return;
-    }
-    /**
-     * @type {*}
-     */
-    let leafElem, rootBlock;
-    let childres = Vdom.children;
-    // 如果是第一个Vdom
-    if (rootVdom == "first") {
-        const defaultNode = createDefaultRootAndLeaf();
-        rootBlock = defaultNode[0];
-        leafElem = defaultNode[1];
-        const rootVdom = getRootDom(Vdom);
-        if (rootVdom == Vdom.parent && typeof Vdom.children == "string") {
-            appendChild(leafElem, createTextNode(Vdom.children))
-            replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
-        } else {
-            replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
-        };
-    } else if (rootVdom.tag) {
-        console.log(rootVdom,"rootVdom")
-        const defaultNode = createDefaultRootAndLeaf(deepTagArr);
-        rootBlock = defaultNode[0];
-        leafElem = defaultNode[1];
-        replaceChild(Vdom.el.parentNode, rootBlock, Vdom.el);
-        // 在这里加其他的匹配标签逻辑
-    } else {
-        leafElem = rootVdom;
-        if (Vdom.nodeType == "text") {
-            addTextContent(rootVdom, Vdom.el);
-        } else if (!isInlineElem(Vdom)) {
-            const defaultNode = createDefaultRootAndLeaf(deepTagArr);
-            rootBlock = defaultNode[0];
-            leafElem = defaultNode[1];
-            let rootVdom = getRootDom(Vdom);
-            appendChild(rootVdom.el, rootBlock);
-        }
-    };
-    // 收集内容并添加到前一个内容的元素中 或 创建前一个内容的子元素，并压入前一个元素中
-    if (Array.isArray(childres)) {
-        childres.forEach((/** @type {any} */ elem, /** @type {any} */ idx) => {
-            mergeRootChildren(elem, leafElem, defaultIndex, deepTagArr);
-        });
-    };
-
-    if (rootVdom.tag || rootVdom == "first") {
-        const jsonToDiv = getDomJson(rootBlock, Vdom.parent.position, defaultIndex);
-        patchAttrs(Vdom, jsonToDiv);
-        patchJson(Vdom, jsonToDiv);
-    }
 };
 
 /**
@@ -1649,8 +1600,10 @@ const childrenHasSelect = (astVdom) => {
 const removeChild = (astVdom, el = null) => {
     if (el) {
         astVdom.parent.el.removeChild(el);
-    } else {
+    } else if (astVdom.parent && astVdom.parent.el) {
         astVdom.parent.el.removeChild(astVdom.el);
+    } else {
+        astVdom.parentNode.removeChild(astVdom);
     }
 }
 // 更新 字符串 AST 到 DOM

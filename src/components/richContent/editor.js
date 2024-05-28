@@ -36,31 +36,36 @@ export const stringJson = (/** @type {{ children: any; attrs: { [x: string]: str
  * @param {*} param0 
  * @returns 
  */
-export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr }) => {
+export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, deepIndex = 0 }) => {
     // 比较旧的VDOM与新的VDOM将有差异的收集到数组，后更新数组数据，在初次比较时更新特殊标签的处理
     updateChildrenSpecifyNode(newVdom);
     let hasChildren = Array.isArray(newVdom && newVdom.children);
     if (oldVdom && newVdom) {
         const hasArrChildren = Array.isArray(newVdom.children);
         if (hasArrChildren) {
+            let hasOpera, status;
             newVdom.children.forEach((/** @type {*} */ el, /** @type {*} */ idx) => {
                 const currentVdom = oldVdom.children[idx];
-                let status = patch({
+                status = patch({
                     oldVdom: currentVdom,
                     newVdom: el,
                     rootIdx: idx,
                     dragEnter: dragEnter,
-                    deepTagArr: deepTagArr
+                    deepTagArr: deepTagArr,
+                    deepIndex: deepIndex + 1
                 });
                 if (status == "add") {
                     oldVdom.children = Array.isArray(oldVdom.children) ? oldVdom.children : [];
-                    const newJson = getDomJson(el.el, oldVdom.parent.position, idx);
+                    const newJson = getDomJson(el.el, oldVdom.position, idx);
                     newJson.parent = oldVdom;
                     oldVdom.children.splice(idx, 0, newJson);
                 } else if (status == "remove") {
                     oldVdom.children.splice(idx, 1);
                 }
             });
+
+            // oldVdom.children.sort((a, b) => { return a.index - b.index })
+
         } else {
             patchJson(oldVdom, newVdom);
         }
@@ -95,6 +100,7 @@ export const patchDragEnter = (astDom, contentText) => {
         let hasSplitText = anchorOffset != anchorNodeVdom.children.length;
         leafVdom.parent.children.forEach((elem, idx) => {
             if (hasSplitText) {
+                console.log(anchorNodeVdom.nodeType, anchorNodeVdom.el, "anchorNodeVdom.nodeType", anchorNodeVdom.el.nodeValue, anchorOffset, lastLeafDom);
                 appendChild(lastLeafDom, anchorNodeVdom.el.splitText(anchorOffset));
             }
             if (idx > moveBaseIndex) {
@@ -112,13 +118,17 @@ export const patchDragEnter = (astDom, contentText) => {
         let lastAnchorElem = rootChildrens[defaultIndex + 1];
         lastAnchorElem = lastAnchorElem && lastAnchorElem.el;
         const lastIndex = lineDomArr.length - 1 + defaultIndex;
-
+        console.log(lineDomArr,"lineDomArr")
         // 切出位置并分割出两个内容组
         lineDomArr.forEach((elem, idx) => {
             let dom;
             if (idx == 0) {
                 addTextContent(leafVdom.el, createTextNode(elem));
                 // rootChildrens.splice(idx, 1, getDomJson(firstRootVdom.el, deepArr, defaultIndex));
+                const rootVdomR = getParentVdom(anchorNodeVdom);
+                let newJson = getDomJson(rootVdomR.el, deepArr, rootVdomR.index);
+                newJson.parent = firstRootVdom.parent;
+                patchJson(rootVdomR, newJson);
             } else if (idx == lineDomArr.length - 1) {
                 addTextContent(lastLeafDom, createTextNode(elem), "insert");
                 dom = lastRootDom;
@@ -141,15 +151,14 @@ export const patchDragEnter = (astDom, contentText) => {
                     appendChild(firstRootVdom.parent.el, dom);
                 };
                 let rootVDom = getDomJson(dom, deepArr, defaultIndex + idx);
-                rootChildrens.splice(idx, 0, rootVDom);
+                rootChildrens.splice(idx + defaultIndex, 0, rootVDom);
                 rootVDom.parent = firstRootVdom.parent;
             }
         });
 
         rootChildrens.forEach((elem, idx) => {
             if (idx >= lastIndex) {
-                patchJson(elem, getDomJson
-                    (elem.el, deepArr, idx));
+                patchJson(elem, getDomJson(elem.el, deepArr, idx));
             }
         });
 

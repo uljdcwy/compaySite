@@ -1001,8 +1001,7 @@ const resetSelectRange = (selectAst) => {
     } else {
         selectAst.forEach((elem, idx) => {
             let textVdom = getLeafText(elem);
-
-            if (textVdom.selected) {
+            if (textVdom && textVdom.selected) {
                 if (textVdom.selected[2] == "start") {
                     startElement = textVdom
                     startOffset = textVdom.selected[1];

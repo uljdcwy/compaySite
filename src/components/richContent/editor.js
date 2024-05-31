@@ -43,7 +43,7 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, de
     if (oldVdom && newVdom) {
         const hasArrChildren = Array.isArray(newVdom.children);
         if (hasArrChildren) {
-            let hasOpera, status;
+            let hasOpera, status, maxIndex = newVdom.children.length, spliceCount = oldVdom.children.length - maxIndex;
             newVdom.children.forEach((/** @type {*} */ el, /** @type {*} */ idx) => {
                 const currentVdom = oldVdom.children[idx];
                 status = patch({
@@ -59,11 +59,18 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, de
                     const newJson = getDomJson(el.el, oldVdom.position, idx);
                     newJson.parent = oldVdom;
                     oldVdom.children.splice(idx, 0, newJson);
-                } else if (status == "remove") {
-                    oldVdom.children.splice(idx, 1);
                 }
             });
 
+            oldVdom.children.splice(maxIndex, spliceCount);
+            if (typeof newVdom.children == "string" && newVdom.children != oldVdom.children || newVdom.tag != oldVdom.tag || newVdom.el != oldVdom.el) {
+                for (let key in newVdom) {
+                    if (key == "parent" || key == "children" && Array.isArray(newVdom[key])) {
+                        continue;
+                    };
+                    oldVdom[key] = newVdom[key];
+                }
+            }
             // oldVdom.children.sort((a, b) => { return a.index - b.index })
 
         } else {
@@ -72,10 +79,24 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, de
     } else if (!oldVdom && newVdom) {
         deepUpdateChildrenSpacifyNode(newVdom);
         return 'add';
-    } else if (oldVdom && !newVdom) {
-        return 'remove';
     }
+
+    if (!oldVdom.parent && !oldVdom.children) {
+        initRichContent(oldVdom);
+    }
+
 };
+
+export const initRichContent = (oldVdom) => {
+    const [rootDom, leafDom] = createDefaultRootAndLeaf();
+    appendChild(oldVdom.el, rootDom);
+    const textNode = createElement("br");
+    // const textNode = createTextNode("br");
+    appendChild(leafDom, textNode);
+    let newJson = getDomJson(oldVdom.el, [], 0);
+    patchJson(oldVdom, newJson);
+    moveCursorToEnd(leafDom);
+}
 
 
 export const patchDragEnter = (astDom, contentText) => {
@@ -91,24 +112,19 @@ export const patchDragEnter = (astDom, contentText) => {
 
     // 当返回的数据大于1时   说明有换行
     if (lineDomArr.length > 1) {
-
         const firstRootVdom = getParentVdom(anchorNodeVdom);
         const leafVdom = getParentVdom(anchorNodeVdom, "span");
-        console.log(leafVdom, "leafVdom", anchorNodeVdom)
         const [lastRootDom, lastLeafDom] = createDefaultRootAndLeaf(deepTagArr);
         const moveBaseIndex = leafVdom.index;
         let hasSplitText = anchorOffset != anchorNodeVdom.children.length;
         leafVdom.parent.children.forEach((elem, idx) => {
             if (hasSplitText) {
-                console.log(anchorNodeVdom.nodeType, anchorNodeVdom.el, "anchorNodeVdom.nodeType", anchorNodeVdom.el.nodeValue, anchorOffset, lastLeafDom);
                 appendChild(lastLeafDom, anchorNodeVdom.el.splitText(anchorOffset));
             }
             if (idx > moveBaseIndex) {
                 appendChild(lastRootDom, elem.el);
             }
         });
-
-        const [rootElem, leafElem] = createDefaultRootAndLeaf(deepTagArr);
 
         const rootChildrens = firstRootVdom.parent.children;
         const deepArr = firstRootVdom.parent.position;
@@ -118,13 +134,30 @@ export const patchDragEnter = (astDom, contentText) => {
         let lastAnchorElem = rootChildrens[defaultIndex + 1];
         lastAnchorElem = lastAnchorElem && lastAnchorElem.el;
         const lastIndex = lineDomArr.length - 1 + defaultIndex;
-        console.log(lineDomArr,"lineDomArr")
         // 切出位置并分割出两个内容组
         lineDomArr.forEach((elem, idx) => {
             let dom;
             if (idx == 0) {
-                addTextContent(leafVdom.el, createTextNode(elem));
-                // rootChildrens.splice(idx, 1, getDomJson(firstRootVdom.el, deepArr, defaultIndex));
+                addTextContent(anchorNodeVdom.el, createTextNode(elem));
+                const copyDeepTagArr = Array.from(deepTagArr);
+                if (copyDeepTagArr.length > 2) {
+                    copyDeepTagArr.splice(0, 2);
+                    let rootElem, leafElem;
+                    while (copyDeepTagArr[0]) {
+                        const tagName = copyDeepTagArr.shift();
+                        let tagElem = createElement(tagName);
+                        if (rootElem) {
+                            appendChild(rootElem, tagElem)
+                        } else {
+                            rootElem = tagElem
+                        }
+                        leafElem = tagElem;
+                    }
+                    // rootChildrens.splice(idx, 1, getDomJson(firstRootVdom.el, deepArr, defaultIndex));
+                    console.log(anchorNodeVdom.el, "anchorNodeVdom.el")
+                    appendChild(leafElem, anchorNodeVdom.el);
+                    appendChild(leafVdom.el, rootElem);
+                }
                 const rootVdomR = getParentVdom(anchorNodeVdom);
                 let newJson = getDomJson(rootVdomR.el, deepArr, rootVdomR.index);
                 newJson.parent = firstRootVdom.parent;
@@ -144,7 +177,6 @@ export const patchDragEnter = (astDom, contentText) => {
                 };
             };
             if (dom) {
-                console.log(lastAnchorElem, "lastAnchorElem", firstRootVdom,"firstRootVdom")
                 if (lastAnchorElem) {
                     inertElement(lastAnchorElem, dom);
                 } else {
@@ -176,7 +208,9 @@ export const patchDragEnter = (astDom, contentText) => {
  * @param {*} newVdom 
  */
 const updateChildrenSpecifyNode = (newVdom) => {
-    newVdom && newVdom.nodeType == "text" && replaceSpecify(newVdom);
+    if (newVdom && (newVdom.nodeType == "text" || newVdom.tag == "br")) {
+        replaceSpecify(newVdom);
+    }
 }
 /**
  * 
@@ -344,10 +378,8 @@ const replaceSpecify = (elVDom) => {
         if (hasParagraphElem) {
         }
         replacePToDIVElement(elVDom);
-    } else if (hasParagraphElem) {
-        if (!isRichLeafTag(pTag)) {
-            replaceSpanToTextElement(elVDom);
-        }
+    } else if (hasParagraphElem && !isRichLeafTag(elVDom.tag || pTag)) {
+        replaceSpanToTextElement(elVDom);
     } else if (!hasParagraphElem) {
         addParagraph(elVDom);
     }
@@ -415,7 +447,7 @@ const isInlineElem = (Vdom) => {
     }
 };
 
-const richLeafArr = ["u", "i", "strong", "span"];
+const richLeafArr = ["u", "i", "strong", "span", "br"];
 
 // 判断是否是富文本的指定标签
 /**
@@ -1418,7 +1450,6 @@ export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().ancho
 const formatPaste = (pasetText) => {
     let lineReg = /(.+)\r?\n/;
     let lineArr = pasetText.split(/\r?\n/);
-    console.log(lineArr, "lineArr");
     return lineArr;
 }
 

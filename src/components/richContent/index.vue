@@ -6,13 +6,13 @@
     <button class="bold-text" @click="unUnderlineSelects">解除下划线</button>
     <button class="bold-text" @click="italicsSelects">添加斜体</button>
     <button class="bold-text" @click="unItalicsSelects">解除斜体</button>
-    <div id="editMain" contenteditable="true" @keyup="getEditorJson" style="height: 120px;background-color: #f00;">
+    <div id="editMain" contenteditable="true" @keyup="getEditorJson" style="height: 120px;background-color: #f00;padding: 10px">
     </div>
 </template>
 
 <script setup>
 import { effect, onMounted, onUnmounted } from 'vue';
-import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition } from "./editor.js";
+    import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition, initRichContent } from "./editor.js";
 /** @type { any } */
 let editMain;
 let agentStart = false;
@@ -27,13 +27,12 @@ const getEditorJson = (/** @type {any} */ e) => {
   if (e.ctrlKey && e.keyCode == "65" || e.ctrlKey && e.keyCode == "86" || !e.ctrlKey && e.keyCode == "17") {
     return;
   }
-  if (agentStart) return;
+  if (agentStart && e.keyCode != 32) return;
   setTimeout(() => {
     patch({
       oldVdom: astDom,
       newVdom: getDomJson(editMain)
     });
-      console.log(astDom,"astDom")
   })
 };
 
@@ -65,11 +64,10 @@ const selectAndUpdate = (cb, selectAst, status) => {
     if (!selectAst[0]) return;
     cb && cb(selectAst, status);
     resetSelectPosition(selectAst);
-    console.log(astDom,"astDom")
 }
 
 const startAgentFn = () => {
-  agentStart = true;
+    agentStart = true;
 };
 
 const endAgentFn = () => {
@@ -151,6 +149,7 @@ const dragleave = () => {
 onMounted(() => {
   editMain = document.getElementById("editMain");
   astDom = getDomJson(editMain);
+  initRichContent(astDom)
 
   editMain.addEventListener("dragenter", dragenter);
   editMain.addEventListener("drop", dragend);

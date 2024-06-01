@@ -134,6 +134,7 @@ const dragend = (event) => {
 
 const updateEnter = (contentText) => {
     patchDragEnter(astDom, contentText);
+    console.log(astDom,"astDom")
 }
 
 const dragenter = (event) => {

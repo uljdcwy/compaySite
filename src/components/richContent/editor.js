@@ -832,7 +832,8 @@ export const getSelectContent = (astDom, selectAst) => {
 };
 
 const getSelectTextElem = (domElem) => {
-    if (domElem.nodeType == 1) {
+    console.log(domElem,"domElem")
+    if (domElem.nodeType == 1 && domElem.childNodes[0]) {
         return getSelectTextElem(domElem.childNodes[0])
     } else {
         return domElem;
@@ -914,6 +915,7 @@ const getMouseDirection = (endDeepArr, startDeepArr) => {
             return true
         }
     });
+    console.log(JSON.stringify(endDeepArr), JSON.stringify(startDeepArr), direction)
     return direction;
 }
 
@@ -1458,7 +1460,10 @@ const formatPaste = (pasetText) => {
  * @param {*} defaultTagArr 
  * @returns 
  */
-const createDefaultRootAndLeaf = (defaultTagArr = ["p", "span"]) => {
+const createDefaultRootAndLeaf = (defaultTagArr) => {
+    if(!defaultTagArr || defaultTagArr.length < 2){
+        defaultTagArr = ["p", "span"]
+    }
     let rootElem, leafElem;
     for (let i = 0; i < defaultTagArr.length; i++) {
         if (rootElem) {

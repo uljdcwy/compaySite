@@ -154,7 +154,6 @@ export const patchDragEnter = (astDom, contentText) => {
                         leafElem = tagElem;
                     }
                     // rootChildrens.splice(idx, 1, getDomJson(firstRootVdom.el, deepArr, defaultIndex));
-                    console.log(anchorNodeVdom.el, "anchorNodeVdom.el")
                     appendChild(leafElem, anchorNodeVdom.el);
                     appendChild(leafVdom.el, rootElem);
                 }
@@ -832,7 +831,6 @@ export const getSelectContent = (astDom, selectAst) => {
 };
 
 const getSelectTextElem = (domElem) => {
-    console.log(domElem,"domElem")
     if (domElem.nodeType == 1 && domElem.childNodes[0]) {
         return getSelectTextElem(domElem.childNodes[0])
     } else {
@@ -870,7 +868,6 @@ const updateAstSelect = (astDom, startDeepArr, startOffset, endDeepArr, endOffse
     
     let startAst = getMiddleSelectAst(startDeepArr, startElem, direction, startOffset, "start");
     let endAst = getMiddleSelectAst(endDeepArr, endElem, (direction == "up" ? "down" : "up"), endOffset, "end");
-
     if (startElem.position[1] == endElem.position[1]) {
         startAst.forEach((el, idx) => {
             if (endAst.indexOf(el) < 0) {
@@ -915,7 +912,6 @@ const getMouseDirection = (endDeepArr, startDeepArr) => {
             return true
         }
     });
-    console.log(JSON.stringify(endDeepArr), JSON.stringify(startDeepArr), direction)
     return direction;
 }
 
@@ -1347,7 +1343,7 @@ const unTagName = (astVdom, tagName) => {
     appendChild(leafElemVdom.parent.el, leafElemVdom.children[0].el);
     removeChild(leafElemVdom);
     let leafSpanVdom = getParentVdom(getLeafTextVdom, "span");
-    let newjson = getDomJson(leafSpanVdom.el);
+    let newjson = getDomJson(leafSpanVdom.el,leafSpanVdom.parent.position,leafSpanVdom.index);
     patchJson(leafSpanVdom, newjson);
     getLeafTextVdom = getLeafText(leafSpanVdom);
     mergeSpan(getLeafTextVdom);

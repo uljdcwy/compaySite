@@ -62,7 +62,13 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, de
                 }
             });
 
-            oldVdom.children.splice(maxIndex, spliceCount);
+            const removeVdom = oldVdom.children.splice(maxIndex, spliceCount);
+            removeVdom.forEach((elem, idx) => {
+                if (elem.el) {
+                    removeChild(elem)
+                }
+            })
+
             if (typeof newVdom.children == "string" && newVdom.children != oldVdom.children || newVdom.tag != oldVdom.tag || newVdom.el != oldVdom.el) {
                 for (let key in newVdom) {
                     if (key == "parent" || key == "children" && Array.isArray(newVdom[key])) {
@@ -98,14 +104,134 @@ export const initRichContent = (oldVdom) => {
     moveCursorToEnd(leafDom);
 }
 
+const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
+    let resetAnchor,anchorIndex;
+    let startDeepArr = getDeepArr(astDom.el, getSelectTextElem(anchorNode));
+    let endDeepArr = getDeepArr(astDom.el, getSelectTextElem(focusNode));
+    const deepTagArr = [];
+    getDeepTagArr(getSelectAst(astDom, endDeepArr), deepTagArr)
+    let direction = getMouseDirection(endDeepArr, startDeepArr);
+    
+    if (selectAst.length == 1) {
+        const textVdom = getLeafText(selectAst[0]);
+        let selected = JSON.parse(JSON.stringify(textVdom.selected));
+        selected.pop();
+        addTextContent(textVdom.el, createTextNode(""), selected);
+        const newJson = getDomJson(textVdom.el, textVdom.parent.position, 0);
+        patchJson(textVdom, newJson);
+        textVdom.selected = null;
+    } else if (selectAst.length > 1) {
+        let parentVdom, childrens;
+        const minIndexArr = [];
+        selectAst.forEach((elem, idx) => {
+            const textVdom = getLeafText(elem);
+            if (textVdom && textVdom.selected) {
+                const selected = textVdom.selected;
+                if (selected[0] == 0 && selected[1] == textVdom.children.length) {
+                    const rootVdom = getParentVdom(textVdom);
+                    parentVdom = parentVdom || rootVdom.parent;
+                    childrens = childrens || parentVdom.children;
+                    const deafultIndex = rootVdom.index;
+                    removeChild(rootVdom);
+                    childrens.splice(deafultIndex, 1, null);
+                    minIndexArr.push(deafultIndex);
+
+                    if (selected[2] == "end" && direction == "down") {
+                        resetAnchor = childrens[deafultIndex + 1]
+                    } else if (selected[2] == "end" && direction == "up") {
+                        resetAnchor = childrens[deafultIndex - 1]
+                    }
+                } else if (selected[0] > 0 && selected[1] < textVdom.children.length) {
+                    console.log(1, "此情况只在选中一行内存在，已处理些处BUG");
+                } else if (selected[0] == 0 && selected[1] < textVdom.children.length) {
+                    console.log(2);
+                } else if (selected[0] > 0 && selected[1] == textVdom.children.length) {
+                    console.log(3);
+                }
+                textVdom.selected = null;
+            } else {
+                if (elem && elem.el) {
+                    const rootVdom = getParentVdom(textVdom);
+                    parentVdom = parentVdom || rootVdom.parent;
+                    childrens = childrens || parentVdom.children;
+                    const deafultIndex = rootVdom.index;
+                    removeChild(rootVdom);
+                    childrens.splice(deafultIndex, 1, null);
+                    minIndexArr.push(deafultIndex);
+                }
+            }
+        });
+        parentVdom.children = childrens.filter((e) => e)
+        const minIndex = Math.min(...minIndexArr);
+
+
+        parentVdom.children.forEach((elRoot, idxRoot) => {
+            if (idxRoot >= minIndex) {
+                const newJson = getDomJson(elRoot.el, elRoot.parent.position, idxRoot);
+                patchJson(elRoot, newJson);
+            }
+        })
+    };
+    if (resetAnchor) {
+        resetAnchor = getLeafText(resetAnchor);
+    } else if (!astDom.children[0]) {
+        const [rootDom, LeafDom] = createDefaultRootAndLeaf(deepTagArr);
+        appendChild(astDom.el, rootDom);
+        if (direction == "down") {
+            let newJson = getDomJson(rootDom, astDom.position, 0);
+            astDom.children.unshift(newJson);
+            newJson.parent = astDom;
+            astDom.children.forEach((elem, idx) => {
+                if (idx == 0) return;
+                patchJson(elem, getDomJson(elem.el, astDom.position, idx))
+            })
+        } else {
+            let newJson = getDomJson(rootDom, astDom.position, astDom.children.length);
+            astDom.children.push(newJson);
+            newJson.parent = astDom;
+        };
+
+        resetAnchor = LeafDom;
+
+        if (direction == "up") {
+            moveCursorToEnd(resetAnchor)
+        } else {
+            Promise.resolve().then(() => {
+                let rooVdom = astDom.children[astDom.children.length - 1];
+                const textVom = getLeafText(rooVdom);
+                moveCursorToEnd(textVom.parent.el)
+            })
+        };
+    };
+    return [resetAnchor, direction];
+}
+
 
 export const patchDragEnter = (astDom, contentText) => {
-    // 格式化内容文本并返回一个数组
-    const lineDomArr = formatPaste(contentText);
     // 获取当位置属性
     const mouseSelect = winGetSelection();
-    const anchorNode = mouseSelect.anchorNode;
-    const anchorOffset = mouseSelect.anchorOffset;
+    let focusNode = mouseSelect.focusNode;
+    let focusOffset = mouseSelect.focusOffset;
+    let anchorNode = mouseSelect.anchorNode;
+    let anchorOffset = mouseSelect.anchorOffset;
+
+    const selctedList = getSelectContent(astDom, []);
+
+    const selectAst = Boolean(selctedList[0]);
+
+    if (selctedList.length == 1 && focusOffset < anchorOffset) {
+        anchorOffset = focusOffset;
+        anchorNode = focusNode;
+    };
+
+    const resetAnchorArr = clearSelectVdom(astDom, selctedList, anchorNode, focusNode);
+
+    if (resetAnchorArr[0]) {
+        anchorNode = resetAnchorArr[0];
+    }
+
+    // 格式化内容文本并返回一个数组
+    const lineDomArr = formatPaste(contentText);
     // 获取当前光标位置的astDom
     // 获取 deep tag name
     const [anchorNodeVdom, deepTagArr] = getCurrentMouseElem(astDom, anchorNode, true);
@@ -116,9 +242,10 @@ export const patchDragEnter = (astDom, contentText) => {
         const leafVdom = getParentVdom(anchorNodeVdom, "span");
         const [lastRootDom, lastLeafDom] = createDefaultRootAndLeaf(deepTagArr);
         const moveBaseIndex = leafVdom.index;
-        let hasSplitText = anchorOffset != anchorNodeVdom.children.length;
+        const anchorNodeVdomChildLen = anchorNodeVdom.children.length;
+        let hasSplitText = anchorOffset != anchorNodeVdomChildLen;
         leafVdom.parent.children.forEach((elem, idx) => {
-            if (hasSplitText) {
+            if (hasSplitText && anchorNodeVdom.el && anchorNodeVdom.el.splitText) {
                 appendChild(lastLeafDom, anchorNodeVdom.el.splitText(anchorOffset));
             }
             if (idx > moveBaseIndex) {
@@ -130,7 +257,6 @@ export const patchDragEnter = (astDom, contentText) => {
         const deepArr = firstRootVdom.parent.position;
 
         const defaultIndex = firstRootVdom.index;
-
         let lastAnchorElem = rootChildrens[defaultIndex + 1];
         lastAnchorElem = lastAnchorElem && lastAnchorElem.el;
         const lastIndex = lineDomArr.length - 1 + defaultIndex;
@@ -162,7 +288,11 @@ export const patchDragEnter = (astDom, contentText) => {
                 newJson.parent = firstRootVdom.parent;
                 patchJson(rootVdomR, newJson);
             } else if (idx == lineDomArr.length - 1) {
-                addTextContent(lastLeafDom, createTextNode(elem), "insert");
+                if (elem) {
+                    addTextContent(lastLeafDom, createTextNode(elem), "insert");
+                } else {
+                    appendChild(lastLeafDom, createElement("br"));
+                }
                 dom = lastRootDom;
             } else {
                 if (elem) {
@@ -193,13 +323,15 @@ export const patchDragEnter = (astDom, contentText) => {
             }
         });
 
-        // 说明没有换行直接在光标位置添加文本内容
     } else {
-        // 获取光标位置的文本;
         addTextContent(anchorNode, createTextNode(contentText), anchorOffset);
         let newJson = getDomJson(anchorNodeVdom.el, anchorNodeVdom.parent.position, 0);
         patchJson(anchorNodeVdom, newJson);
     };
+
+    if (selectAst && !resetAnchorArr[0]) {
+        moveCursorToEnd(anchorNode, anchorOffset)
+    }
 }
 
 /**
@@ -398,6 +530,12 @@ const addTextContent = (nodeElement, TextNode, direction = "after") => {
         let textContent = nodeElement.textContent;
         let startText = textContent.substr(0, direction);
         let endText = textContent.substr(direction, textContent.length);
+        nodeElement.textContent = startText + TextNode.textContent + endText;
+    } else if (Array.isArray(direction) && direction.length == 2) {
+        let textContent = nodeElement.textContent;
+        let startText = textContent.substr(0, direction[0]);
+        let endText = textContent.substr(direction[1], textContent.length);
+        console.log(startText, "startText", TextNode.textContent, "TextNode.textContent", endText, "endText", JSON.parse(JSON.stringify(direction)))
         nodeElement.textContent = startText + TextNode.textContent + endText;
     } else {
         nodeElement.textContent = nodeElement.textContent + TextNode.textContent;
@@ -658,21 +796,27 @@ const patchAttrs = (oldVdom, newVdom) => {
  * 
  * @param {*} element 
  */
-const moveCursorToEnd = (element) => {
+const moveCursorToEnd = (element, offset = false) => {
     var range = document.createRange();
     /** @type {*} */
     var selection = window.getSelection();
-
-    // 将 Range 设置为编辑元素的最后
-    range.selectNodeContents(element);
-    range.collapse(false);
+    if (offset || offset === 0) {
+        range.setStart(element, offset);
+        range.setEnd(element, offset);
+        console.log(1)
+    } else {
+        console.log(2)
+        // 将 Range 设置为编辑元素的最后
+        range.selectNodeContents(element);
+        range.collapse(false);
+    }
 
     // 清除当前 Selection 并将 Range 添加到 Selection 中
     selection.removeAllRanges();
     selection.addRange(range);
-
     // 设置焦点到编辑元素
-    element.focus();
+    element.focus && element.focus();
+
 };
 
 // 将字符串化的 json 格式化为 AST;
@@ -1325,7 +1469,7 @@ const getParentVdom = (astVdom, tagName) => {
  * @returns {*}
  */
 const getLeafText = (astVdom) => {
-    if (astVdom.nodeType == "text") {
+    if (astVdom.nodeType == "text" || astVdom.tag == "br") {
         return astVdom;
     } else if (Array.isArray(astVdom.children)) {
         return getLeafText(astVdom.children[0]);

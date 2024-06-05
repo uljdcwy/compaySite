@@ -12,7 +12,7 @@
 
 <script setup>
 import { effect, onMounted, onUnmounted } from 'vue';
-    import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition, initRichContent } from "./editor.js";
+import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition, initRichContent } from "./editor.js";
 /** @type { any } */
 let editMain;
 let agentStart = false;
@@ -33,6 +33,7 @@ const getEditorJson = (/** @type {any} */ e) => {
       oldVdom: astDom,
       newVdom: getDomJson(editMain)
     });
+    console.log(astDom,"astDom")
   })
 };
 
@@ -97,6 +98,11 @@ const mouseup = (e) => {
   return false;
 };
 
+
+
+    effect(() => { }, {
+    })
+
 /**
  * 
  * @param {*} event 
@@ -132,8 +138,9 @@ const dragend = (event) => {
 }
 
 
-const updateEnter = (contentText) => {
+ const updateEnter = (contentText) => {
     patchDragEnter(astDom, contentText);
+    console.log(astDom,"astDom")
 }
 
 const dragenter = (event) => {

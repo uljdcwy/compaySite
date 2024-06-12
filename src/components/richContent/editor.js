@@ -109,7 +109,7 @@ export const initRichContent = (oldVdom) => {
 }
 
 const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
-    let resetAnchor, startAnchor, endAnchor, anchorOffset;
+    let resetAnchor, startAnchor, endAnchor, anchorOffset,deleteStartAnchor;
     let startDeepArr = getDeepArr(astDom.el, getSelectTextElem(anchorNode));
     let endDeepArr = getDeepArr(astDom.el, getSelectTextElem(focusNode));
     const deepTagArr = [];
@@ -129,13 +129,14 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
         const minIndexArr = [];
         selectAst.forEach((elem, idx) => {
             const textVdom = getLeafText(elem);
+            parentVdom = getParentVdom(textVdom).parent;
+            childrens = childrens || parentVdom.children;
             if (textVdom && textVdom.selected) {
                 let splitTextDom;
                 const selected = textVdom.selected;
                 if (selected[0] == 0 && selected[1] == textVdom.children.length) {
+                    console.log(textVdom,"textVdom")
                     const rootVdom = getParentVdom(textVdom);
-                    parentVdom = parentVdom || rootVdom.parent;
-                    childrens = childrens || parentVdom.children;
                     const deafultIndex = rootVdom.index;
                     removeChild(rootVdom);
                     childrens.splice(deafultIndex, 1, null);
@@ -146,6 +147,7 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                     } else if (selected[2] == "end" && direction == "up") {
                         resetAnchor = childrens[deafultIndex - 1]
                     }
+                    deleteStartAnchor = true;
                 } else if (selected[0] > 0 && selected[1] < textVdom.children.length) {
                     console.log("此情况只在选中一行内存在，已处理些处BUG");
                 } else if (selected[0] == 0 && selected[1] < textVdom.children.length) {
@@ -175,8 +177,6 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
             } else {
                 if (elem && elem.el) {
                     const rootVdom = getParentVdom(textVdom);
-                    parentVdom = parentVdom || rootVdom.parent;
-                    childrens = childrens || parentVdom.children;
                     const deafultIndex = rootVdom.index;
                     removeChild(rootVdom);
                     childrens.splice(deafultIndex, 1, null);
@@ -184,7 +184,24 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                 }
             }
         });
-        if (childrens) { parentVdom.children = childrens.filter((e) => e) }
+
+        // 合并两行并移除其中一行
+        if (startAnchor && endAnchor && !deleteStartAnchor) {
+            const [anchorNodeVdom, deepTagArr] = getCurrentMouseElem(astDom, startAnchor, true)
+            addTextContent(endAnchor, startAnchor);
+            const rootPVdom = getParentVdom(anchorNodeVdom);
+            // childrens.splice(rootPVdom.index, 1);
+            childrens.forEach((elem, idx) => {
+                if (elem == rootPVdom) {
+                    console.log(idx, "准备删除");
+                    childrens.splice(idx, 1);
+                }
+            });
+            removeChild(startAnchor);
+            startAnchor = endAnchor;
+        }
+
+        if (childrens) { parentVdom.children = childrens.filter((e) => e) };
         const minIndex = Math.min(...minIndexArr);
 
         if (parentVdom) {
@@ -196,6 +213,9 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
             })
         }
     };
+
+
+
     if (resetAnchor) {
         const anchorVdom = getLeafText(resetAnchor);
         resetAnchor = anchorVdom.el;
@@ -228,22 +248,27 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
             })
         };
     };
-    // 合并两行并移除其中一行
-    if (startAnchor && endAnchor) {
-
-    }
 
     return [resetAnchor, direction, startAnchor, endAnchor, anchorOffset];
 }
 
+const getSelectTextNode = (selectNode) => {
+    if (selectNode && selectNode.nodeType == 3 || !selectNode || !selectNode.firstChild) {
+        return selectNode;
+    } else {
+        return getSelectTextNode(selectNode.firstChild);
+    }
+}
 
 export const patchDragEnter = (astDom, contentText) => {
     // 获取当位置属性
     const mouseSelect = winGetSelection();
-    let focusNode = mouseSelect.focusNode;
+    let focusNode = getSelectTextNode(mouseSelect.focusNode);
     let focusOffset = mouseSelect.focusOffset;
-    let anchorNode = mouseSelect.anchorNode;
+    let anchorNode = getSelectTextNode(mouseSelect.anchorNode);
     let anchorOffset = mouseSelect.anchorOffset;
+
+    
 
     const selctedList = getSelectContent(astDom, []);
 
@@ -252,7 +277,7 @@ export const patchDragEnter = (astDom, contentText) => {
     if (selctedList.length == 1 && focusOffset < anchorOffset) {
         anchorOffset = focusOffset;
         anchorNode = focusNode;
-    };
+    }
 
     const resetAnchorArr = clearSelectVdom(astDom, selctedList, anchorNode, focusNode);
     if (resetAnchorArr[0] || resetAnchorArr[3]) {
@@ -295,20 +320,27 @@ export const patchDragEnter = (astDom, contentText) => {
         lineDomArr.forEach((elem, idx) => {
             let dom;
             if (idx == 0) {
-                addTextContent(anchorNodeVdom.el, createTextNode(elem));
+                if (anchorNodeVdom.tag == "br") {
+                    appendChild(anchorNodeVdom.parent.el, createTextNode(elem));
+                    removeChild(anchorNodeVdom);
+                } else {
+                    addTextContent(anchorNodeVdom.el, createTextNode(elem));
+                }
                 const copyDeepTagArr = Array.from(deepTagArr);
                 if (copyDeepTagArr.length > 2) {
                     copyDeepTagArr.splice(0, 2);
                     let rootElem, leafElem;
                     while (copyDeepTagArr[0]) {
                         const tagName = copyDeepTagArr.shift();
-                        let tagElem = createElement(tagName);
-                        if (rootElem) {
-                            appendChild(rootElem, tagElem)
-                        } else {
-                            rootElem = tagElem
+                        if (tagName != "br") {
+                            let tagElem = createElement(tagName);
+                            if (rootElem) {
+                                appendChild(rootElem, tagElem)
+                            } else {
+                                rootElem = tagElem
+                            }
+                            leafElem = tagElem;
                         }
-                        leafElem = tagElem;
                     }
                     // rootChildrens.splice(idx, 1, getDomJson(firstRootVdom.el, deepArr, defaultIndex));
                     appendChild(leafElem, anchorNodeVdom.el);
@@ -995,11 +1027,11 @@ export const getSelectContent = (astDom, selectAst) => {
      * @type {*}
      */
     let selects = winGetSelection();
-    let startTextEl = selects.anchorNode;
+    let startTextEl = getSelectTextNode(selects.anchorNode);
     let anchorOffset = selects.anchorOffset;
     let focusOffset = selects.focusOffset;
     let startOffset = anchorOffset;
-    let endTextEl = selects.focusNode;
+    let endTextEl = getSelectTextNode(selects.focusNode);
     let endOffset = focusOffset;
     if (startTextEl == endTextEl && anchorOffset == focusOffset) { return [] };
 
@@ -1193,6 +1225,7 @@ const getSelectAst = (astDom, deepArr) => {
     let startPosition = copyDeepArr.shift();
     let childrens = astDom.children;
     let startElemAst;
+    console.log(childrens, "childrens", copyDeepArr, "copyDeepArr", startPosition,"startPosition")
     while (startPosition || startPosition === 0) {
         startElemAst = childrens[startPosition];
         childrens = startElemAst.children;

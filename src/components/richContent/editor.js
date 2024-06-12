@@ -97,7 +97,6 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, de
 };
 
 export const initRichContent = (oldVdom) => {
-    console.log("执行初始化了？")
     const [rootDom, leafDom] = createDefaultRootAndLeaf();
     appendChild(oldVdom.el, rootDom);
     const textNode = createElement("br");
@@ -129,13 +128,14 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
         const minIndexArr = [];
         selectAst.forEach((elem, idx) => {
             const textVdom = getLeafText(elem);
-            parentVdom = getParentVdom(textVdom).parent;
+            parentVdom = parentVdom || getParentVdom(textVdom).parent;
             childrens = childrens || parentVdom.children;
             if (textVdom && textVdom.selected) {
                 let splitTextDom;
+                deleteStartAnchor = true;
                 const selected = textVdom.selected;
+                console.log(JSON.stringify(selected), "selected", elem)
                 if (selected[0] == 0 && selected[1] == textVdom.children.length) {
-                    console.log(textVdom,"textVdom")
                     const rootVdom = getParentVdom(textVdom);
                     const deafultIndex = rootVdom.index;
                     removeChild(rootVdom);
@@ -147,7 +147,7 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                     } else if (selected[2] == "end" && direction == "up") {
                         resetAnchor = childrens[deafultIndex - 1]
                     }
-                    deleteStartAnchor = true;
+                    deleteStartAnchor = false;
                 } else if (selected[0] > 0 && selected[1] < textVdom.children.length) {
                     console.log("此情况只在选中一行内存在，已处理些处BUG");
                 } else if (selected[0] == 0 && selected[1] < textVdom.children.length) {
@@ -185,24 +185,27 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
             }
         });
 
+
+        if (childrens) { parentVdom.children = childrens.filter((e) => e) };
+
+
         // 合并两行并移除其中一行
-        if (startAnchor && endAnchor && !deleteStartAnchor) {
-            const [anchorNodeVdom, deepTagArr] = getCurrentMouseElem(astDom, startAnchor, true)
+        if (startAnchor && endAnchor && deleteStartAnchor) {
+            const [anchorNodeVdom, deepTagArr] = getCurrentMouseElem(astDom, startAnchor, true);
             addTextContent(endAnchor, startAnchor);
             const rootPVdom = getParentVdom(anchorNodeVdom);
             // childrens.splice(rootPVdom.index, 1);
-            childrens.forEach((elem, idx) => {
+            parentVdom.children.forEach((elem, idx) => {
                 if (elem == rootPVdom) {
-                    console.log(idx, "准备删除");
-                    childrens.splice(idx, 1);
+                    minIndexArr.push(idx);
+                    parentVdom.children.splice(idx, 1);
                 }
             });
-            removeChild(startAnchor);
+            removeChild(rootPVdom);
             startAnchor = endAnchor;
         }
 
-        if (childrens) { parentVdom.children = childrens.filter((e) => e) };
-        const minIndex = Math.min(...minIndexArr);
+        const minIndex = Math.min(...minIndexArr) - 1;
 
         if (parentVdom) {
             parentVdom.children.forEach((elRoot, idxRoot) => {
@@ -211,7 +214,8 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                     patchJson(elRoot, newJson);
                 }
             })
-        }
+        };
+
     };
 
 
@@ -655,8 +659,8 @@ const isInlineElem = (Vdom) => {
         return false;
     }
 };
-
-const richLeafArr = ["u", "i", "strong", "span", "br"];
+const rooLeafTag = "span"
+const richLeafArr = ["u", "i", "strong", rooLeafTag, "br"];
 
 // 判断是否是富文本的指定标签
 /**
@@ -1225,7 +1229,6 @@ const getSelectAst = (astDom, deepArr) => {
     let startPosition = copyDeepArr.shift();
     let childrens = astDom.children;
     let startElemAst;
-    console.log(childrens, "childrens", copyDeepArr, "copyDeepArr", startPosition,"startPosition")
     while (startPosition || startPosition === 0) {
         startElemAst = childrens[startPosition];
         childrens = startElemAst.children;

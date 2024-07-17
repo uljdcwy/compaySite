@@ -60,8 +60,8 @@ import banner3 from "@public/banner3.jpg";
                 },
                 {
                     title: "产品中心",
-                    link: "/about?lang=zh",
-                    name: "",
+                    link: "/products",
+                    name: "products",
                     query: { lang: 'zh' },
                     childList: [
                         {
@@ -121,8 +121,8 @@ import banner3 from "@public/banner3.jpg";
                     link: ""
                 },
                 {
-                    title: "新闻资讯",
-                    link: ""
+                    title: "关于我们",
+                    link: "about?lang=zh"
                 }
             ])),
             tel: "0755-23646330",

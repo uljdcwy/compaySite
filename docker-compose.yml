@@ -1,0 +1,70 @@
+version: '3.8'
+services:
+  compaysite_dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "10016:10016"
+    image: compaysite
+    volumes:
+      - .\@types:/compaySite/@types
+      - .\c:/compaySite/c
+      - .\moduleApi:/compaySite/moduleApi
+      - .\node:/compaySite/node
+      - .\nodeModule:/compaySite/nodeModule
+      - .\pages:/compaySite/pages
+      - .\preloads:/compaySite/preloads
+      - .\public:/compaySite/public
+      - .\Services:/compaySite/Services
+      - .\src:/compaySite/src
+      - .\wasmModule:/compaySite/wasmModule
+      - .\web:/compaySite/web
+      - .\webpack:/compaySite/webpack
+      - .\webpackLoads:/compaySite/webpackLoads
+      - .\webpackPlugins:/compaySite/webpackPlugins
+      - .\bsTEemplate.html:/compaySite/bsTEemplate.html
+      - .\devServer.js:/compaySite/devServer.js
+      - .\package.json:/compaySite/package.json
+      - .\phoneTemplate.html:/compaySite/phoneTemplate.html
+      - .\postcss.config.js:/compaySite/postcss.config.js
+      - .\project.json:/compaySite/project.json
+      - .\template.html:/compaySite/template.html
+      - .\tsconfig.json:/compaySite/tsconfig.json
+      - .\dockerInit.sh:/compaySite/dockerInit.sh
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    entrypoint: ["/compaySite/dockerInit.sh"]
+    command: ${dockerCommand}
+  compaysite_build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: compaysite
+    volumes:
+      - .\@types:/compaySite/@types
+      - .\c:/compaySite/c
+      - .\moduleApi:/compaySite/moduleApi
+      - .\node:/compaySite/node
+      - .\nodeModule:/compaySite/nodeModule
+      - .\pages:/compaySite/pages
+      - .\preloads:/compaySite/preloads
+      - .\public:/compaySite/public
+      - .\Services:/compaySite/Services
+      - .\src:/compaySite/src
+      - .\wasmModule:/compaySite/wasmModule
+      - .\web:/compaySite/web
+      - .\webpack:/compaySite/webpack
+      - .\webpackLoads:/compaySite/webpackLoads
+      - .\webpackPlugins:/compaySite/webpackPlugins
+      - .\bsTEemplate.html:/compaySite/bsTEemplate.html
+      - .\devServer.js:/compaySite/devServer.js
+      - .\package.json:/compaySite/package.json
+      - .\phoneTemplate.html:/compaySite/phoneTemplate.html
+      - .\postcss.config.js:/compaySite/postcss.config.js
+      - .\project.json:/compaySite/project.json
+      - .\template.html:/compaySite/template.html
+      - .\tsconfig.json:/compaySite/tsconfig.json
+      - .\dockerInit.sh:/compaySite/dockerInit.sh
+    entrypoint: ["/compaySite/dockerInit.sh"]
+    command: ${dockerCommand}

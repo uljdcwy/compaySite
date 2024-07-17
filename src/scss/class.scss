@@ -8,12 +8,67 @@
     margin: padOrMar($t,$r,$b,$l);
 }
 
-@mixin height ($h: null) { 
-    height: getUnit($h);
+@mixin height ($h: null, $unit: null) {
+    @if $unit {
+        height: getUnit($h, $unit);
+    } @else {
+        height: getUnit($h);
+    }
 }
 
-@mixin width ($w: null) { 
-    width: getUnit($w);
+@mixin transition ($transition: null) {
+    transition: $transition;
+}
+
+@mixin transform ($transform: null, $origin: null) {
+    transform: $transform;
+    transform-origin: $origin;
+}
+
+
+
+@mixin width ($w: null, $unit: null) {
+
+    @if $unit {
+        width: getUnit($w, $unit)
+    }
+    @else {
+        width: getUnit($w);
+    }
+}
+
+@mixin minHeight ($h: null) {
+    min-height: getUnit($h);
+}
+
+@mixin boxSize ($content: null) {
+    box-sizing: $content
+}
+
+@mixin background ($Color: #fff) {
+    background-color: $Color;
+}
+
+@mixin overflow ($type: hidden) {
+    overflow: $type
+}
+
+@mixin gridShow ($colGap: 10px, $rowGap: 10px, $rowHeight: 260px, $columns: auto auto auto auto auto, $type: grid) {
+    display: $type;
+    grid-template-columns: $columns;
+    grid-gap: $colGap;
+    grid-row-gap: $rowGap;
+    grid-auto-rows: $rowHeight;
+}
+
+@mixin threeEnv ($deep: 900, $originL: center, $originT: center, $Env: preserve-3d) {
+    perspective: getUnit($deep);
+    perspective-origin: $originL $originT;
+    transform-style: $Env;
+}
+
+@mixin textAlign ($align: center) {
+    text-align: $align;
 }
 
 
@@ -95,11 +150,11 @@
 @function getUnit($n, $unit: px) {
     @if $n == 1e15 {
         @return auto;
-    };
-
-    @if $n {
+    } @else if $unit == "%" {
+        @return $n;
+    } @else if $n {
         @return $n + $unit;
-    };
+    }
 }
 
 

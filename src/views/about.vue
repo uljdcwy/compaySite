@@ -34,7 +34,7 @@ const t = useI18n();
     @include width($mainWidth);
     @include margin(15, 1e15);
 }
-
+    
 .about-title {
     @include padding(20, 0);
     font-weight: 500;

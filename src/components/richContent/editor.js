@@ -107,7 +107,7 @@ export const initRichContent = (oldVdom) => {
     moveCursorToEnd(leafDom);
 }
 
-const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
+const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomArr) => {
     let resetAnchor, startAnchor, endAnchor, anchorOffset,deleteStartAnchor;
     let startDeepArr = getDeepArr(astDom.el, getSelectTextElem(anchorNode));
     let endDeepArr = getDeepArr(astDom.el, getSelectTextElem(focusNode));
@@ -124,6 +124,7 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
         patchJson(textVdom, newJson);
         textVdom.selected = null;
     } else if (selectAst.length > 1) {
+        const hasLineList = lineDomArr.length > 1;
         let parentVdom, childrens;
         const minIndexArr = [];
         selectAst.forEach((elem, idx) => {
@@ -134,7 +135,6 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                 let splitTextDom;
                 deleteStartAnchor = true;
                 const selected = textVdom.selected;
-                console.log(JSON.stringify(selected), "selected", elem)
                 if (selected[0] == 0 && selected[1] == textVdom.children.length) {
                     const rootVdom = getParentVdom(textVdom);
                     const deafultIndex = rootVdom.index;
@@ -143,10 +143,33 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                     minIndexArr.push(deafultIndex);
 
                     if (selected[2] == "end" && direction == "down") {
-                        resetAnchor = childrens[deafultIndex + 1]
+                        resetAnchor = childrens[deafultIndex + 1];
+                        if (resetAnchor) {
+                            const anchorVdom = getLeafText(resetAnchor);
+                            anchorOffset = anchorVdom.children.length;
+                            startAnchor = anchorVdom.el;
+                        }
                     } else if (selected[2] == "end" && direction == "up") {
+                        resetAnchor = childrens[deafultIndex - 1];
+                        if (resetAnchor) {
+                            const anchorVdom = getLeafText(resetAnchor);
+                            anchorOffset = anchorVdom.children.length;
+                            endAnchor = anchorVdom.el;
+                        }
+                    } else if (selected[2] == "start" && direction == "down") {
                         resetAnchor = childrens[deafultIndex - 1]
-                    }
+                        if (resetAnchor) {
+                            const anchorVdom = getLeafText(resetAnchor);
+                            endAnchor = anchorVdom.el;
+                        }
+                    } else if (selected[2] == "start" && direction == "up") {
+                        resetAnchor = childrens[deafultIndex + 1];
+                        if (resetAnchor) {
+                            const anchorVdom = getLeafText(resetAnchor);
+                            startAnchor = anchorVdom.el;
+                        }
+                    };
+
                     deleteStartAnchor = false;
                 } else if (selected[0] > 0 && selected[1] < textVdom.children.length) {
                     console.log("此情况只在选中一行内存在，已处理些处BUG");
@@ -161,17 +184,19 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
                     splitTextDom = textVdom.el;
                     textVdom.children = getTextContent(textVdom.el, "text");
                 }
-                if (selected[2] == "start" && direction == "up") {
-                    anchorOffset = textVdom.children.length;
-                    startAnchor = splitTextDom
-                } else if (selected[2] == "end" && direction == "up") {
-                    anchorOffset = textVdom.children.length;
-                    endAnchor = splitTextDom
-                } else if (selected[2] == "start" && direction == "down") {
-                    anchorOffset = textVdom.children.length;
-                    endAnchor = splitTextDom
-                } else if (selected[2] == "end" && direction == "down") {
-                    startAnchor = splitTextDom
+                if (deleteStartAnchor) {
+                    if (selected[2] == "start" && direction == "up") {
+                        anchorOffset = textVdom.children.length;
+                        startAnchor = splitTextDom
+                    } else if (selected[2] == "end" && direction == "up") {
+                        anchorOffset = textVdom.children.length;
+                        endAnchor = splitTextDom
+                    } else if (selected[2] == "start" && direction == "down") {
+                        anchorOffset = textVdom.children.length;
+                        endAnchor = splitTextDom
+                    } else if (selected[2] == "end" && direction == "down") {
+                        startAnchor = splitTextDom
+                    }
                 }
                 textVdom.selected = null;
             } else {
@@ -185,9 +210,9 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
             }
         });
 
+        console.log(resetAnchor, "resetAnchor", endAnchor, "endAnchor", startAnchor, "startAnchor", direction, "direction", anchorOffset,"anchorOffset")
 
         if (childrens) { parentVdom.children = childrens.filter((e) => e) };
-
 
         // 合并两行并移除其中一行
         if (startAnchor && endAnchor && deleteStartAnchor) {
@@ -220,10 +245,7 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
 
 
 
-    if (resetAnchor) {
-        const anchorVdom = getLeafText(resetAnchor);
-        resetAnchor = anchorVdom.el;
-    } else if (!astDom.children[0]) {
+    if (!astDom.children[0]) {
         const [rootDom, LeafDom] = createDefaultRootAndLeaf(deepTagArr);
         appendChild(astDom.el, rootDom);
         if (direction == "down") {
@@ -248,10 +270,10 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode) => {
             Promise.resolve().then(() => {
                 let rooVdom = astDom.children[astDom.children.length - 1];
                 const textVom = getLeafText(rooVdom);
-                moveCursorToEnd(textVom.parent.el)
+                moveCursorToEnd(textVom.parent.el);
             })
         };
-    };
+    }
 
     return [resetAnchor, direction, startAnchor, endAnchor, anchorOffset];
 }
@@ -283,15 +305,16 @@ export const patchDragEnter = (astDom, contentText) => {
         anchorNode = focusNode;
     }
 
-    const resetAnchorArr = clearSelectVdom(astDom, selctedList, anchorNode, focusNode);
+    // 格式化内容文本并返回一个数组
+    const lineDomArr = formatPaste(contentText);
+
+    const resetAnchorArr = clearSelectVdom(astDom, selctedList, anchorNode, focusNode, lineDomArr);
     if (resetAnchorArr[0] || resetAnchorArr[3]) {
         anchorNode = resetAnchorArr[3] || resetAnchorArr[0];
     };
 
     anchorOffset = resetAnchorArr[4] || anchorOffset
-
-    // 格式化内容文本并返回一个数组
-    const lineDomArr = formatPaste(contentText);
+    console.log(anchorNode,"anchorNode")
     // 获取当前光标位置的astDom
     // 获取 deep tag name
     const [anchorNodeVdom, deepTagArr] = getCurrentMouseElem(astDom, anchorNode, true);
@@ -299,8 +322,15 @@ export const patchDragEnter = (astDom, contentText) => {
     // 当返回的数据大于1时   说明有换行
     if (lineDomArr.length > 1) {
         const firstRootVdom = getParentVdom(anchorNodeVdom);
+        const rootChildrens = firstRootVdom.parent.children;
+        const deepArr = firstRootVdom.parent.position;
+
+        const defaultIndex = firstRootVdom.index;
+        let lastAnchorElemVom = rootChildrens[defaultIndex + 1];
+        let lastAnchorElem = lastAnchorElemVom && lastAnchorElemVom.el;
         const leafVdom = getParentVdom(anchorNodeVdom, "span");
         const [lastRootDom, lastLeafDom] = createDefaultRootAndLeaf(deepTagArr);
+        console.log(lastRootDom,"lastRootDom")
         const moveBaseIndex = leafVdom.index;
         const anchorNodeVdomChildLen = anchorNodeVdom.children.length;
         let hasSplitText = anchorOffset != anchorNodeVdomChildLen;
@@ -313,12 +343,6 @@ export const patchDragEnter = (astDom, contentText) => {
             }
         });
 
-        const rootChildrens = firstRootVdom.parent.children;
-        const deepArr = firstRootVdom.parent.position;
-
-        const defaultIndex = firstRootVdom.index;
-        let lastAnchorElem = rootChildrens[defaultIndex + 1];
-        lastAnchorElem = lastAnchorElem && lastAnchorElem.el;
         const lastIndex = lineDomArr.length - 1 + defaultIndex;
         // 切出位置并分割出两个内容组
         lineDomArr.forEach((elem, idx) => {
@@ -355,12 +379,18 @@ export const patchDragEnter = (astDom, contentText) => {
                 newJson.parent = firstRootVdom.parent;
                 patchJson(rootVdomR, newJson);
             } else if (idx == lineDomArr.length - 1) {
-                if (elem) {
-                    addTextContent(lastLeafDom, createTextNode(elem), "insert");
+                console.log(elem, "elem", lastAnchorElem,"lastAnchorElem")
+                if (!lastAnchorElem) {
+                    if (elem) {
+                        addTextContent(lastLeafDom, createTextNode(elem), "insert");
+                    } else {
+                        appendChild(lastLeafDom, createElement("br"));
+                    }
+                    dom = lastRootDom;
                 } else {
-                    appendChild(lastLeafDom, createElement("br"));
+                    const lastChildrenFirstElemVom = getLeafText(lastAnchorElemVom);
+                    addTextContent(lastChildrenFirstElemVom.el, createTextNode(elem), "insert");
                 }
-                dom = lastRootDom;
             } else {
                 if (elem) {
                     const [rootElem, leafElem] = createDefaultRootAndLeaf(deepTagArr);
@@ -373,6 +403,7 @@ export const patchDragEnter = (astDom, contentText) => {
                 };
             };
             if (dom) {
+                console.log(lastAnchorElem,"lastAnchorElem")
                 if (lastAnchorElem) {
                     inertElement(lastAnchorElem, dom);
                 } else {

@@ -15,7 +15,10 @@
 		"build-ssr-server": "webpack --config ./webpack/webpack.ssr.node.js",
 		"build-cNode": "webpack --config ./webpack/webpack.prod.cNode.js",
 		"dev-electron": "electron src/electron.js development",
-		"build-electron": "electron-builder"
+		"build-electron": "electron-builder",
+		"server-compose-build": "set dockerCommand='npm run build-server' && docker-compose up compaysite",
+		"docker-compose-build": "set dockerCommand='npm run build' && docker-compose up compaysite_build",
+		"dev-docker-compose": "set dockerCommand='npm run dev' && docker-compose up compaysite_dev"
 	},
 	"license": "ISC",
 	"devDependencies": {

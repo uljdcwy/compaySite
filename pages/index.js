@@ -6,7 +6,7 @@ import "@/scss/theme.scss";
 if(process.env.NODE_ENV == "development"){
 	window._INIT_LANG_ = "zh"
 	// const vConsole = new VConsole();
-}
+};
 
 
 

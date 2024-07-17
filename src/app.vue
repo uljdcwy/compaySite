@@ -1,7 +1,6 @@
 <template>
     <vue-header @search="searchContent"></vue-header>
     <router-view></router-view>
-    <rich-content></rich-content>
     <vue-footer @search="searchContent" :bg="bg"></vue-footer>
 </template>
 <script setup>

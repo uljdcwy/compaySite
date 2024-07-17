@@ -1,6 +1,9 @@
 let express = require('express');
+let path = require("path")
 let app = express();
-const config = require("./Services/config.json")
+
+let basePath = process.cwd();
+const config = require(path.resolve(basePath, "./Services/config.json"));
 let webpack = require('webpack');
 let webpackConfig = require('./webpack/webpack.dev');
 let compiler = webpack(webpackConfig);

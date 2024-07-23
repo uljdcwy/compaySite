@@ -148,7 +148,7 @@
 }
 
 @function getUnit($n, $unit: px) {
-    @if $n == 1e15 {
+    @if $n == auto {
         @return auto;
     } @else if $unit == "%" {
         @return $n;

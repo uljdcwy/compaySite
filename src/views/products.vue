@@ -97,7 +97,7 @@ onMounted(() => {
     }
     .products-3d {
         @include width($mainWidth);
-        @include margin(0, 1e15);
+        @include margin(0, auto);
         @include threeEnv();
     }
 

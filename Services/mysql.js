@@ -1,10 +1,12 @@
-import mysql2 from "mysql2";
+// @ts-ignore
+import mysql2 from "mysql2/Promise";
 import config from "./config.json" assert { type: 'json' };
 
 const pool = mysql2.createPool(config.dbData);
 /**
  * 
  */
+// @ts-ignore
 process.on('exit', async (code) => {
     try{
         pool.end();
@@ -13,29 +15,20 @@ process.on('exit', async (code) => {
     }
 });
 
-export const createDB = (/** @type {String} */ DBName) => {
-    return new Promise((resolve, reject) => {
-        const connection = mysql2.createConnection(config.dbData);
-        connection.connect((err) => {
-            if (err) {
-                console.error(JSON.stringify(err));
-                reject(err);
-                return;
-            }else {
-                connection.query(`CREATE DATABASE IF NOT EXISTS ${DBName}`, (CreateErr, result) => {
-                    if(CreateErr){
-                        console.error(JSON.stringify(CreateErr))
-                        reject(CreateErr);
-                        return;
-                    }else{
-                        console.info(JSON.stringify(result))
-                        resolve(result);
-                        return ;
-                    }
-                })
-            }
-        })
-    })
+export const createDB = async (/** @type {String} */ DBName) => {
+    const connection = await pool.getConnection();
+    try {
+        // 执行创建数据库操作
+        const [result] = await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DBName}\``);
+        console.info('Create database result:', JSON.stringify(result));
+        return result;
+      } catch (createErr) {
+        console.error('Create database error:', JSON.stringify(createErr));
+        throw createErr;
+      } finally {
+        // 释放连接回连接池
+        connection.release();
+      }
 }
 
 /**
@@ -44,38 +37,27 @@ export const createDB = (/** @type {String} */ DBName) => {
  * @param params SQL参数一般不用，
  * @returns 
  */
-export const query = (sql, params) => {
-    return new Promise((resolve, reject) => {
-        pool.query(sql, params, function (err, results, fields) {
-            if (err) {
-                console.error(JSON.stringify(err));
-                reject(err);
-                return;
-            } else {
-                console.info(results,"结果集");
-                resolve(results || []);
-            }
-        });
-    })
+export const query = async (sql, params) => {
+    return await pool.query(sql, params).catch((/** @type {any} */ res) => {
+        console.info(`
+            sql: ${sql}
+            params: ${params}
+            catch: ${JSON.stringify(res)}
+            `)
+    });
 };
 /**
- * @type {sql} sql执行，此方法能一定程度避免被注入SQL
+ * @type {sql} sql执行
  * @param sql SQL语句
- * @param params SQL参数一般不用，
+ * @param params 使用此种方式传参数能一定程度避免被注入SQL
  * @returns 
  */
-export const execute = (sql, params) => {
-    
-    return new Promise((resolve, reject) => {
-        pool.execute(sql, params, function (err, results, fields) {
-            if (err) {
-                console.error(JSON.stringify(err));
-                reject(err);
-                return;
-            } else {
-                console.info(results,"结果集");
-                resolve(results || []);
-            }
-        });
-    })
+export const execute = async (sql, params) => {
+    return await pool.execute(sql, params).catch((/** @type {any} */ res) => {
+        console.info(`
+            sql: ${sql}
+            params: ${params}
+            catch: ${JSON.stringify(res)}
+            `)
+    });
 }

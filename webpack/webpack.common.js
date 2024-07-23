@@ -16,6 +16,10 @@ module.exports = {
       'path': false
     },
   },
+  watchOptions: {
+    poll: 1000, // 每秒轮询一次文件变化
+    aggregateTimeout: 300, // 防抖时间
+  },
   experiments: {
     asyncWebAssembly: true,
     syncWebAssembly: true

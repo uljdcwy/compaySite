@@ -200,17 +200,17 @@ onUnmounted(() => {
         display: block;
         @include height(70);
         background-color: $phoneFixedBg;
-        @include position(fixed, 0, 0, 1e15, 0);
+        @include position(fixed, 0, 0, auto, 0);
         @include border(solid, $borderColor, 0, 0, 1, 0);
         z-index: 100;
     }
 }
 
 .header-content {
-    @include position(fixed, 0, 0, 1e15, 0);
+    @include position(fixed, 0, 0, auto, 0);
     width: getUnit($mainWidth);
     @include padding(10, 0, 0, 0);
-    @include margin(0, 1e15);
+    @include margin(0, auto);
     box-sizing: border-box;
     display: flex;
     @include height(70);
@@ -229,7 +229,7 @@ onUnmounted(() => {
 
     .search-icon {
         @include margin(0, 10);
-        @include position(relative, 1e15, 1e15, 1e15, 1e15);
+        @include position(relative, auto, auto, auto, auto);
     }
 
     .search-icon.show-input .serach-input {
@@ -239,7 +239,7 @@ onUnmounted(() => {
     }
 
     .serach-input {
-        @include position(absolute, 0, 0, 1e15, 1e15);
+        @include position(absolute, 0, 0, auto, auto);
         z-index: 10;
         transition: width 0.3s ease;
         @include width(0);
@@ -258,7 +258,7 @@ onUnmounted(() => {
 
     .icon-sousuo {
         @include font(22);
-        @include position(relative, 1e15, 1e15, 1e15, 1e15);
+        @include position(relative, auto, auto, auto, auto);
         z-index: 100;
         cursor: pointer;
     }
@@ -266,7 +266,7 @@ onUnmounted(() => {
     .tel {}
 
     .nav-block {
-        @include margin(1e15, 10, 1e15, 1e15);
+        @include margin(auto, 10, auto, auto);
         height: 100%;
         flex: 1;
         display: flex;
@@ -292,7 +292,7 @@ onUnmounted(() => {
     }
 
     .child-content {
-        @include position(absolute, 60, 0, 1e15, 0);
+        @include position(absolute, 60, 0, auto, 0);
         background-color: $navChildBGColor;
         display: flex;
         @include height(0);
@@ -355,7 +355,7 @@ onUnmounted(() => {
             @include height(3);
             background-color: $navPhoneBGColor;
             @include borderRadius(3);
-            @include margin(0, 1e15);
+            @include margin(0, auto);
             width: 100%;
             transition: width 0.3s ease;
         }
@@ -430,7 +430,7 @@ onUnmounted(() => {
         flex-direction: column;
         @include width(0);
         overflow: hidden;
-        @include position(fixed, 50, 0, 0, 1e15);
+        @include position(fixed, 50, 0, 0, auto);
         background-color: $navPhoneBGColor;
         transition: width 0.3s ease;
         overflow-y: scroll;

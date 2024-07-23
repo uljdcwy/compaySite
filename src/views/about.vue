@@ -32,7 +32,7 @@ const t = useI18n();
 
 .container-about {
     @include width($mainWidth);
-    @include margin(15, 1e15);
+    @include margin(15, auto);
 }
     
 .about-title {
@@ -85,7 +85,7 @@ const t = useI18n();
 
 @media screen and (max-width: 1024px) {
     .container-about {
-        @include width(1e15);
+        @include width(auto);
         @include margin(5, 10);
     }
 
@@ -106,12 +106,12 @@ const t = useI18n();
     }
 
     .img-concat {
-        @include width(1e15);
+        @include width(auto);
     }
 
     .concat-qr {
         @include width(160);
-        @include margin(0, 1e15);
+        @include margin(0, auto);
         display: block;
     }
 

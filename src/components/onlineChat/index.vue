@@ -99,7 +99,7 @@ const openChat = () => {
 }
 
 .online-chat {
-    @include position(fixed, 1e15, 10, 10, 1e15);
+    @include position(fixed, auto, 10, 10, auto);
     z-index: 999;
     @include border(solid, #ccc, 1);
     @include borderRadius(2);
@@ -115,7 +115,7 @@ const openChat = () => {
         font-weight: bold;
         @include font(12);
         color: $redColor;
-        @include position(relative, -6, -2, 1e15, 1e15)
+        @include position(relative, -6, -2, auto, auto)
     }
 }
 
@@ -221,7 +221,7 @@ const openChat = () => {
         .person-img {
             @include padding(0, 20);
             @include height(160);
-            @include margin(1e15, 1e15);
+            @include margin(auto, auto);
         }
 
         img {

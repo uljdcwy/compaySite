@@ -1,4 +1,8 @@
-$borderColor: rgba(100,100,100,0.5);
+:root {
+    --border-color: rgba(100,100,100,0.5);
+}
+
+$borderColor: var(--border-color);
 
 $mainWidth: 1200;
 $phoneWidth: 100%;
@@ -8,7 +12,7 @@ $redColor: #f00;
 $hoverColor: #999;
 $linkColor: #222;
 $defaultColor: #fff;
-$defaultBGColor: rgba(0,0,0,0.1);
+$defaultBGColor: rgba(54, 23, 23, 0.1);
 $mainBtnColor: rgb(6, 207, 255);
 $phoneFixedBg: #fff;
 $phoneFixedColor: #666;
@@ -29,10 +33,10 @@ $chatHeadBG: #000;
 $chatSelectBG: #000;
 $chatSelectColor: #fff;
 
-a{
+a {
     color: $linkColor;
     text-decoration: none;
-    &:hover{
+    &:hover {
         color: $hoverColor;
     }
 }

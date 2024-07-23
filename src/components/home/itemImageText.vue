@@ -87,10 +87,11 @@ const t = useI18n();
             max-width: 100%;
         }
     }
-
-    @include width($mainWidth);
-    @include margin(20, 1e15);
-    @include padding(20)
+    & {
+        @include width($mainWidth);
+        @include margin(20, auto);
+        @include padding(20)
+    }
 }
 
 @media screen and (max-width: 1024px) {
@@ -112,8 +113,10 @@ const t = useI18n();
         .context-image {
             width: 100%;
         }
-        width: auto;
-        @include padding(0);
+        & {
+            width: auto;
+            @include padding(0);
+        }
     }
 }
 </style>

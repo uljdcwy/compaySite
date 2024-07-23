@@ -140,7 +140,7 @@ onMounted(() => {
 
 .footer-content {
     width: getUnit($mainWidth);
-    @include margin(0, 1e15);
+    @include margin(0, auto);
 
     .item-link {
     }
@@ -254,7 +254,7 @@ onMounted(() => {
             display: none
         }
         .footer-logo{
-            @include margin(0, 1e15);
+            @include margin(0, auto);
             display: block
         }
         .search-box{

@@ -96,7 +96,7 @@ if (isClientStatus) {
 .count-block {
     .main-content {
         @include width($mainWidth);
-        @include margin(15, 1e15);
+        @include margin(15, auto);
         @include padding(15, 0);
         display: flex;
         justify-content: space-between;

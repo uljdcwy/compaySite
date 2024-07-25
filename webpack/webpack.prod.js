@@ -1,17 +1,17 @@
 const { merge } = require('webpack-merge');
-const path = require("path");
+const common = require('./webpack.common.js');
 const fs = require("fs");
-let basePath = process.cwd();
 /**
  * @type {any}
  */
-const common = require(path.resolve(basePath,"./webpack.common.js"));
-const webConfig = require(path.resolve(basePath,"./web.config.js"));
+const webConfig = require('./web.config.js');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const project = require(path.resolve(basePath,"./../project.json"));
+const project = require("./../project.json");
 const TerserPlugin = require("terser-webpack-plugin");
 const CompressionPlugin = require("compression-webpack-plugin");
+const path = require("path");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+let basePath = process.cwd();
 const dirList = fs.readdirSync(path.resolve(basePath + "/pages"));
 /**
  * @type {any}

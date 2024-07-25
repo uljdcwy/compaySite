@@ -3,14 +3,14 @@ const webpack = require("webpack");
 const path = require("path");
 const common = require('./webpack.common.js');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-let basePath = process.cwd();
-const project = require(path.resolve(basePath,"./../project.json"))
+const project = require("./../project.json")
 const DevHtml = require("../webpackPlugins/webpack5Dev");
 const fs = require("fs");
 /**
  * @type {any}
  */
-const webConfig = require(path.resolve(basePath,"./web.config.js"));
+const webConfig = require('./web.config.js');
+let basePath = process.cwd();
 const hotScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000';
 /**
  * @type {any}

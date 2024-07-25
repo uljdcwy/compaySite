@@ -1,5 +1,8 @@
+// @ts-ignore
 const path = require("path");
+// @ts-ignore
 const { VueLoaderPlugin } = require('vue-loader');
+// @ts-ignore
 let basePath = process.cwd();
 module.exports = {
   target: "web",

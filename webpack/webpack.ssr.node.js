@@ -1,12 +1,12 @@
 const { merge } = require('webpack-merge');
-const common = require('./webpack.common.js');
-const config = require('./web.config.js');
+const path = require("path");
+let basePath = process.cwd();
 /**
  * @type {any}
  */
 const TerserPlugin = require("terser-webpack-plugin");
-const path = require("path");
-let basePath = process.cwd();
+const common = require(path.resolve(basePath, "./webpack.common.js"));
+const config = require(path.resolve(basePath, "./web.config.js"));
 // @ts-ignore
 module.exports = merge(common, config, {
     // @ts-ignore

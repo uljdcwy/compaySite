@@ -302,7 +302,7 @@ import banner3 from "@public/banner3.jpg";
         },
         vueIndex: {
             title: 'title ',
-            author: 'xiya',
+            author: 'xiy1111a',
             keywords: 'xiya',
             description: 'description content',
             countblock: encodeURIComponent(JSON.stringify([{

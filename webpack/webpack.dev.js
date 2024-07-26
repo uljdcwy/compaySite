@@ -11,7 +11,7 @@ const fs = require("fs");
  */
 const webConfig = require('./web.config.js');
 let basePath = process.cwd();
-const hotScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000';
+const hotScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=10000';
 /**
  * @type {any}
  */

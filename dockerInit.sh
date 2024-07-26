@@ -13,8 +13,6 @@ if [ ! -d "node_modules" ]; then
     else
         echo "参数中不包含 npm run dev"
     fi
-
-
 else
     echo "Dependencies already installed."
 fi
@@ -29,7 +27,6 @@ if [ "$1" = "npm run dev" ]; then
 else
     echo "参数中不包含 npm run dev"
 fi
-
 
 $1
 # 打命命令参数

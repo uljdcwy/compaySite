@@ -91,6 +91,7 @@ export const patch = ({ oldVdom, newVdom, rootIdx = 0, dragEnter, deepTagArr, de
     }
 
     if (!oldVdom.parent && !oldVdom.children) {
+        console.log("在这里做的移动光标操作！")
         initRichContent(oldVdom);
     }
 
@@ -172,7 +173,7 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
 
                     deleteStartAnchor = false;
                 } else if (selected[0] > 0 && selected[1] < textVdom.children.length) {
-                    console.log("此情况只在选中一行内存在，已处理些处BUG");
+                    console.log("此情况只在选中一行内存在, 已处理些处BUG");
                 } else if (selected[0] == 0 && selected[1] < textVdom.children.length) {
                     splitTextDom = textVdom.el.splitText(selected[1]);
                     removeChild(textVdom.el)
@@ -618,6 +619,7 @@ const replaceSpecify = (elVDom) => {
         }
         replacePToDIVElement(elVDom);
     } else if (hasParagraphElem && !isRichLeafTag(elVDom.tag || pTag) || getParentVdom(elVDom, leafSpanTag).tag != leafSpanTag) {
+        console.log(elVDom,"elVDom",elVDom.el)
         replaceSpanToTextElement(elVDom);
     } else if (!hasParagraphElem) {
         addParagraph(elVDom);
@@ -858,6 +860,7 @@ const replaceSpanToTextElement = (elVDom) => {
     replaceChild(elVDom.parent.el, span, elVDom.el)
     const replaceJson = getDomJson(span, elVDom.parent.position);
     patchJson(elVDom, replaceJson);
+    console.log("移动位置",span,elVDom.parent.el,cloneText)
     moveCursorToEnd(elVDom.parent.el);
 };
 // 更新属性
@@ -904,6 +907,7 @@ const patchAttrs = (oldVdom, newVdom) => {
  * @param {*} element 
  */
 const moveCursorToEnd = (element, offset = false) => {
+    console.log("移动到最后")
     var range = document.createRange();
     /** @type {*} */
     var selection = window.getSelection();
@@ -1091,7 +1095,7 @@ const getSelectTextElem = (domElem) => {
  * 
  * @returns {*}
  */
-const winGetSelection = () => {
+export const winGetSelection = () => {
     return window.getSelection()
 }
 
@@ -1695,7 +1699,7 @@ export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().ancho
  * @returns 
  */
 const formatPaste = (pasetText) => {
-    let lineReg = /(.+)\r?\n/;
+    // let lineReg = /(.+)\r?\n/;
     let lineArr = pasetText.split(/\r?\n/);
     return lineArr;
 }

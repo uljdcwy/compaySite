@@ -6,13 +6,13 @@
     <button class="bold-text" @click="unUnderlineSelects">解除下划线</button>
     <button class="bold-text" @click="italicsSelects">添加斜体</button>
     <button class="bold-text" @click="unItalicsSelects">解除斜体</button>
-    <div id="editMain" contenteditable="true" @keyup="getEditorJson" style="height: 120px;background-color: #f00;padding: 10px">
+    <div id="editMain" contenteditable="true" @keydown="clearOtherBr" @keyup="getEditorJson" style="height: 120px;background-color: #f00;padding: 10px">
     </div>
 </template>
 
 <script setup>
 import { effect, onMounted, onUnmounted } from 'vue';
-import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition, initRichContent } from "./editor.js";
+import { getDomJson, patch, getSelectContent, bold, patchDragEnter, italics, underline, resetSelectPosition, initRichContent, winGetSelection, removeChild } from "./editor.js";
 /** @type { any } */
 let editMain;
 let agentStart = false;
@@ -29,13 +29,28 @@ const getEditorJson = (/** @type {any} */ e) => {
   }
   if (agentStart && e.keyCode != 32) return;
   setTimeout(() => {
+    let selectDom = winGetSelection();
+    if(moveBrStatus){
+      emoveChild(selectDom.anchorNode.parentNode.nextSibling);
+    }
     patch({
       oldVdom: astDom,
       newVdom: getDomJson(editMain)
     });
+    moveBrStatus = false;
     console.log(astDom,"astDom")
   })
 };
+
+let moveBrStatus = false;
+
+const clearOtherBr = () => {
+  let selectDom = winGetSelection();
+  if(selectDom.anchorNode != selectDom.focusNode){
+    moveBrStatus = true;
+  }
+  console.log(selectDom.anchorNode,"winGetSelection",selectDom.focusNode)
+}
 
 const boldSelects = () => {
     selectAndUpdate(bold, selectAst);
@@ -97,11 +112,6 @@ const mouseup = (e) => {
   selected = false;
   return false;
 };
-
-
-
-    effect(() => { }, {
-    })
 
 /**
  * 

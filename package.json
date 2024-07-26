@@ -35,7 +35,7 @@
 		"crypto": "^1.0.1",
 		"css-loader": "^6.7.3",
 		"echarts": "^5.4.1",
-		"electron": "^23.1.0",
+		"electron": "^23.3.13",
 		"electron-builder": "^24.6.3",
 		"element-plus": "^2.2.36",
 		"express": "^4.18.2",

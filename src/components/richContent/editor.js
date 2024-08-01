@@ -205,7 +205,6 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
                 if (selected[2] == "start" && direction == "up") {
                     endAnchor = splitTextDom
                 } else if (selected[2] == "end" && direction == "up") {
-                    console.log(textVdom,"textVdom",splitTextDom,"splitTextDom")
                     anchorOffset = getTextContent(splitTextDom, "text").length;
                     startAnchor = splitTextDom
                 } else if (selected[2] == "start" && direction == "down") {
@@ -213,8 +212,6 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
                 } else if (selected[2] == "end" && direction == "down") {
                     endAnchor = splitTextDom
                 }
-
-                console.log(textVdom.children,"textVdom.children",selected,splitTextDom, anchorOffset)
 
                 if (deleteStartAnchor) {
                     // if (selected[2] == "start" && direction == "up") {
@@ -291,15 +288,15 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
 
         resetAnchor = LeafDom;
 
-        if (direction == "up") {
-            moveCursorToEnd(resetAnchor)
-        } else {
-            Promise.resolve().then(() => {
-                let rooVdom = astDom.children[astDom.children.length - 1];
-                const textVom = getLeafText(rooVdom);
-                moveCursorToEnd(textVom.parent.el);
-            })
-        };
+        // if (direction == "up") {
+        //     moveCursorToEnd(resetAnchor)
+        // } else {
+        //     Promise.resolve().then(() => {
+        //         let rooVdom = astDom.children[astDom.children.length - 1];
+        //         const textVom = getLeafText(rooVdom);
+        //         moveCursorToEnd(textVom.parent.el);
+        //     })
+        // };
     }
 
     return {resetAnchor, direction, startAnchor, endAnchor, anchorOffset, direction};
@@ -342,20 +339,9 @@ export const patchDragEnter = (astDom, contentText) => {
     
     // 向上是与向下的锚区分，并且区别光标移动位置
 
-    // console.log(resetAnchorArr,"resetAnchorArr")
-    
-    // if (resetAnchorArr[0] || resetAnchorArr[3]) {
-    //     anchorNode = resetAnchorArr[3] || resetAnchorArr[0];
-    // };
-
-    // anchorOffset = resetAnchorArr[4] || anchorOffset
-    // console.log(anchorNode,"anchorNode")
-    console.log(resultObj,"resultObj")
     if(resultObj.direction == "up"){
         anchorNode = resultObj.startAnchor;
         anchorOffset = resultObj.anchorOffset;
-    }else{
-
     }
 
 
@@ -387,12 +373,12 @@ export const patchDragEnter = (astDom, contentText) => {
         const leafVdom = getParentVdom(anchorNodeVdom, "span");
         // 创建默认的根节点与叶节点
         const [lastRootDom, lastLeafDom] = createDefaultRootAndLeaf(deepTagArr);
-        console.log(lastRootDom,"lastRootDom")
+        console.log(lastRootDom, lastLeafDom,"lastRootDom, lastLeafDom",anchorNode,"anchorNode",anchorOffset,"anchorOffset")
         // 获取叶节点的VDOM的索引
         const moveBaseIndex = leafVdom.index;
         // 获取锚VDOM的字符串长度
         const anchorNodeVdomChildLen = anchorNodeVdom.children.length;
-        console.log(anchorNodeVdom.children,"anchorNodeVdom.children",anchorOffset,anchorNodeVdomChildLen)
+        
         // 如果锚的offset 不等于锚VDOM的长度
         let hasSplitText = anchorOffset != anchorNodeVdomChildLen;
         leafVdom.parent.children.forEach((elem, idx) => {
@@ -405,17 +391,28 @@ export const patchDragEnter = (astDom, contentText) => {
         });
 
         const lastIndex = lineDomArr.length - 1 + defaultIndex;
+       
         // 切出位置并分割出两个内容组
         lineDomArr.forEach((elem, idx) => {
             let dom;
-
             if (idx == 0) {
+                const firstElem = createTextNode(elem);
+                let defaultFirstElem = "";
 
-                if (anchorNodeVdom.tag == "br") {
-                    appendChild(anchorNodeVdom.parent.el, createTextNode(elem));
+                if (anchorNodeVdom.tag == "br" && elem) {
+                    defaultFirstElem = anchorNodeVdom.parent.el; 
+                    appendChild(defaultFirstElem, firstElem);
                     removeChild(anchorNodeVdom);
                 } else {
-                    addTextContent(anchorNodeVdom.el, createTextNode(elem));
+                    defaultFirstElem = anchorNodeVdom.el; 
+                    addTextContent(defaultFirstElem, firstElem);
+                }
+                console.log(defaultFirstElem,"defaultFirstElem")
+                // 如果是向下选， 开始锚不为真将开始定义为第一个 否则将结束锚定义为第一个
+                if(resultObj.direction == "down"){
+                    resultObj.startAnchor = resultObj.startAnchor || defaultFirstElem;
+                }else{
+                    resultObj.endAnchor = resultObj.endAnchor || defaultFirstElem;
                 }
                 const copyDeepTagArr = Array.from(deepTagArr);
                 if (copyDeepTagArr.length > 2) {
@@ -442,22 +439,38 @@ export const patchDragEnter = (astDom, contentText) => {
                 newJson.parent = firstRootVdom.parent;
                 patchJson(rootVdomR, newJson);
             } else if (idx == lineDomArr.length - 1) {
+               
                 // 向上拉选时更新锚的位置
                 if(resultObj.direction == "down") {
                     anchorOffset = elem.length;
                 }
-                console.log(elem, "elem", lastAnchorElem,"lastAnchorElem")
+
+                const lastElem = elem ? createTextNode(elem) : createElement("br");
+                let defaultLastElem = "";
                 if (!lastAnchorElem) {
                     if (elem) {
-                        addTextContent(lastLeafDom, createTextNode(elem), "insert");
+                        addTextContent(lastLeafDom, lastElem, "insert");
+                        defaultLastElem = lastLeafDom.firstChild;
                     } else {
-                        appendChild(lastLeafDom, createElement("br"));
+                        appendChild(lastLeafDom, lastElem);
+                        defaultLastElem = lastElem;
                     }
                     dom = lastRootDom;
                 } else {
                     const lastChildrenFirstElemVom = getLeafText(lastAnchorElemVom);
-                    addTextContent(lastChildrenFirstElemVom.el, createTextNode(elem), "insert");
+                    defaultLastElem = lastChildrenFirstElemVom.el
+                    addTextContent(defaultLastElem, lastElem, "insert");
                 }
+
+                
+                console.log(defaultLastElem,"defaultLastElem")
+                // 如果是向下选， 开始锚不为真将开始定义为最后一个 否则将结束锚定义为最后一个
+                if(resultObj.direction == "down"){
+                    resultObj.endAnchor = resultObj.endAnchor || defaultLastElem;
+                }else{
+                    resultObj.startAnchor = resultObj.startAnchor || defaultLastElem;
+                }
+
             } else {
                 if (elem) {
                     const [rootElem, leafElem] = createDefaultRootAndLeaf(deepTagArr);
@@ -470,7 +483,6 @@ export const patchDragEnter = (astDom, contentText) => {
                 };
             };
             if (dom) {
-                console.log(lastAnchorElem,"lastAnchorElem")
                 if (lastAnchorElem) {
                     inertElement(lastAnchorElem, dom);
                 } else {
@@ -504,11 +516,29 @@ export const patchDragEnter = (astDom, contentText) => {
     };
 
     if(resultObj.direction == "up") {
-        console.log(resultObj.endAnchor,"resultObj.endAnchor",anchorOffset,"anchorOffset")
-        moveCursorToEnd(resultObj.startAnchor, anchorOffset)
-    }else{
-        moveCursorToEnd(resultObj.endAnchor, anchorOffset)
-    }
+        moveCursorToEnd(resultObj.startAnchor, anchorOffset);
+        moveScrollToCursor(resultObj.startAnchor, anchorNodeVdom);
+    } else {
+        console.log(resultObj,"resultObj");
+        moveCursorToEnd(resultObj.endAnchor, anchorOffset);
+        moveScrollToCursor(resultObj.endAnchor, anchorNodeVdom);
+    };
+}
+
+// 移动滚动条到光标的位置
+const moveScrollToCursor = (element, astVDom) => {
+    const rootVDom = getRootDom(astVDom);
+    const rootDom = rootVDom.el;
+    // const scrollTop = rootDom.scrollTop;
+    const offsetTop = rootDom.offsetTop;
+    const offsetHeight = rootDom.offsetHeight;
+    let scrollHeight = (element.parentNode.offsetTop + element.parentNode.offsetHeight) - (offsetTop + offsetHeight);
+    rootDom.scrollTo({
+        top: scrollHeight,
+        left: 0,
+        behavior: 'smooth'
+    });
+    // element.scrollIntoView();
 }
 
 /**
@@ -688,7 +718,6 @@ const replaceSpecify = (elVDom) => {
         }
         replacePToDIVElement(elVDom);
     } else if (hasParagraphElem && !isRichLeafTag(elVDom.tag || pTag) || getParentVdom(elVDom, leafSpanTag).tag != leafSpanTag) {
-        console.log(elVDom,"elVDom",elVDom.el)
         replaceSpanToTextElement(elVDom);
     } else if (!hasParagraphElem) {
         addParagraph(elVDom);
@@ -981,6 +1010,7 @@ const moveCursorToEnd = (element, offset = false) => {
     /** @type {*} */
     var selection = window.getSelection();
     if (offset || offset === 0) {
+        console.log(element,"element",offset,"offset")
         range.setStart(element, offset);
         range.setEnd(element, offset);
     } else {
@@ -994,7 +1024,6 @@ const moveCursorToEnd = (element, offset = false) => {
     selection.addRange(range);
     // 设置焦点到编辑元素
     element.focus && element.focus();
-
 };
 
 // 将字符串化的 json 格式化为 AST;

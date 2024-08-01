@@ -18,6 +18,7 @@ export const getListMiddle = async (ctx) => {
     ctx.body = await findSqlRun(params, ctx);
 
   } catch (e) {
+    console.error("查看报错", e)
     ctx.body = { code: 0, msg: '查询数据异常' };
   }
 }

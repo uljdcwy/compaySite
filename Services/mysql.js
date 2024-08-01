@@ -1,5 +1,5 @@
 // @ts-ignore
-import mysql2 from "mysql2/Promise";
+import mysql2 from "mysql2/promise";
 import config from "./config.json" assert { type: 'json' };
 
 const pool = mysql2.createPool(config.dbData);
@@ -53,11 +53,12 @@ export const query = async (sql, params) => {
  * @returns 
  */
 export const execute = async (sql, params) => {
-    return await pool.execute(sql, params).catch((/** @type {any} */ res) => {
+    const promiseResult = await pool.execute(sql, params).catch((/** @type {any} */ res) => {
         console.info(`
             sql: ${sql}
             params: ${params}
             catch: ${JSON.stringify(res)}
             `)
     });
+    return promiseResult[0]
 }

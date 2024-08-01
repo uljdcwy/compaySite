@@ -30,7 +30,7 @@ const getEditorJson = (/** @type {any} */ e) => {
   if (agentStart && e.keyCode != 32) return;
   setTimeout(() => {
     let selectDom = winGetSelection();
-    if(moveBrStatus){
+    if(moveBrStatus) {
       emoveChild(selectDom.anchorNode.parentNode.nextSibling);
     }
     patch({
@@ -46,7 +46,7 @@ let moveBrStatus = false;
 
 const clearOtherBr = () => {
   let selectDom = winGetSelection();
-  if(selectDom.anchorNode != selectDom.focusNode){
+  if(selectDom.anchorNode != selectDom.focusNode) {
     moveBrStatus = true;
   }
   console.log(selectDom.anchorNode,"winGetSelection",selectDom.focusNode)
@@ -142,8 +142,8 @@ const mousemove = (/** @type {any} */ e) => {
 const dragend = (event) => {
     let dragText = event.dataTransfer.getData("text/plain");
     dragStatus = false;
-    updateEnter(dragText);
     event.preventDefault();
+    updateEnter(dragText);
     return false;
 }
 

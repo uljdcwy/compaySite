@@ -31,7 +31,7 @@ const getEditorJson = (/** @type {any} */ e) => {
   setTimeout(() => {
     let selectDom = winGetSelection();
     if(moveBrStatus) {
-      emoveChild(selectDom.anchorNode.parentNode.nextSibling);
+      removeChild(selectDom.anchorNode.parentNode.nextSibling);
     }
     patch({
       oldVdom: astDom,

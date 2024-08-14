@@ -11,12 +11,24 @@ const index = () => import("@/views/index.vue").catch(importVueFail);
 const about = () => import("@/views/about.vue").catch(importVueFail);
 // @ts-ignore
 const products = () => import("@/views/products.vue").catch(importVueFail);
+// @ts-ignore
+const snake = () => import("@/components/threeJs/snake.vue").catch(importVueFail);
+// @ts-ignore
+const drawLine = () => import("@/components/threeJs/drawLine.vue").catch(importVueFail);
+// @ts-ignore
+const drawText = () => import("@/components/threeJs/drawText.vue").catch(importVueFail);
+// @ts-ignore
+const animate = () => import("@/components/threeJs/animate.vue").catch(importVueFail);
 
 
 const routes = [
     { path: '/', name: "index", component: index },
     { path: '/about', name: "about", component: about },
     { path: '/products', name: "products", component: products },
+    { path: '/snake', name: "snake", component: snake },
+    { path: '/drawLine', name: "drawLine", component: drawLine },
+    { path: '/drawText', name: "drawText", component: drawText },
+    { path: '/animate', name: "animate", component: animate },
     { path: '/:catchAll(.*)', name: '404', component: page404 }
 ];
 

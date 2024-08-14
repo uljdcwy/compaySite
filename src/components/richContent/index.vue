@@ -30,7 +30,8 @@ const getEditorJson = (/** @type {any} */ e) => {
   if (agentStart && e.keyCode != 32) return;
   setTimeout(() => {
     let selectDom = winGetSelection();
-    if(moveBrStatus) {
+    if(moveBrStatus && selectDom.anchorNode.parentNode.nextSibling) {
+      console.log(selectDom.anchorNode.parentNode.nextSibling,"selectDom.anchorNode.parentNode.nextSibling")
       removeChild(selectDom.anchorNode.parentNode.nextSibling);
     }
     patch({

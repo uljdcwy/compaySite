@@ -108,17 +108,21 @@ import banner3 from "@public/banner3.jpg";
                 },
                 {
                     title: "解决方案",
-                    link: "/other?lang=zh",
+                    link: "/snake?lang=zh",
                     name: "",
                     query: { lang: 'zh' }
                 },
                 {
                     title: "工程案例",
-                    link: ""
+                    link: "/animate?lang=zh",
+                    name: "",
+                    query: { lang: 'zh' }
                 },
                 {
                     title: "品牌介绍",
-                    link: ""
+                    link: "/drawText?lang=zh",
+                    name: "",
+                    query: { lang: 'zh' }
                 },
                 {
                     title: "关于我们",

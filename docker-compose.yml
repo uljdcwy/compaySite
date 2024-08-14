@@ -26,6 +26,7 @@ services:
       - .\webpackPlugins:/compaySite/webpackPlugins
       - .\bsTEemplate.html:/compaySite/bsTEemplate.html
       - .\devServer.js:/compaySite/devServer.js
+      - .\transfromFont.js:/compaySite/transfromFont.js
       - .\package.json:/compaySite/package.json
       - .\phoneTemplate.html:/compaySite/phoneTemplate.html
       - .\postcss.config.js:/compaySite/postcss.config.js
@@ -60,6 +61,7 @@ services:
       - .\webpackPlugins:/compaySite/webpackPlugins
       - .\bsTEemplate.html:/compaySite/bsTEemplate.html
       - .\devServer.js:/compaySite/devServer.js
+      - .\transfromFont.js:/compaySite/transfromFont.js
       - .\package.json:/compaySite/package.json
       - .\phoneTemplate.html:/compaySite/phoneTemplate.html
       - .\postcss.config.js:/compaySite/postcss.config.js
@@ -92,6 +94,7 @@ services:
       - .\webpackPlugins:/compaySite/webpackPlugins
       - .\bsTEemplate.html:/compaySite/bsTEemplate.html
       - .\devServer.js:/compaySite/devServer.js
+      - .\transfromFont.js:/compaySite/transfromFont.js
       - .\package.json:/compaySite/package.json
       - .\phoneTemplate.html:/compaySite/phoneTemplate.html
       - .\postcss.config.js:/compaySite/postcss.config.js
@@ -124,6 +127,7 @@ services:
       - .\webpackPlugins:/compaySite/webpackPlugins
       - .\bsTEemplate.html:/compaySite/bsTEemplate.html
       - .\devServer.js:/compaySite/devServer.js
+      - .\transfromFont.js:/compaySite/transfromFont.js
       - .\package.json:/compaySite/package.json
       - .\phoneTemplate.html:/compaySite/phoneTemplate.html
       - .\postcss.config.js:/compaySite/postcss.config.js

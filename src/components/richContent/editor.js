@@ -363,9 +363,10 @@ export const patchDragEnter = (astDom, contentText) => {
                     removeChild(anchorNodeVdom);
                 } else {
                     defaultFirstElem = anchorNodeVdom.el; 
+                    console.log(defaultFirstElem,"defaultFirstElem", firstElem, "firstElem")
                     addTextContent(defaultFirstElem, firstElem);
                 }
-                console.log(defaultFirstElem,"defaultFirstElem")
+                console.log(defaultFirstElem,"defaultFirstElem", anchorNodeVdom, "anchorNodeVdom")
                 // 如果是向下选， 开始锚不为真将开始定义为第一个 否则将结束锚定义为第一个
                 if(resultObj.direction == "down"){
                     resultObj.startAnchor = resultObj.startAnchor || defaultFirstElem;
@@ -1758,8 +1759,10 @@ export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().ancho
  * @returns 
  */
 const formatPaste = (pasetText) => {
+    console.log(pasetText,"pasetText")
     // let lineReg = /(.+)\r?\n/;
     let lineArr = pasetText.split(/\r?\n/);
+    console.log(lineArr,"lineArr");
     return lineArr;
 }
 

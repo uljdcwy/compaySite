@@ -29,6 +29,10 @@ module.exports = {
         },
       },
       {
+        test: /\.(glb)/i,
+        type: 'asset/resource'
+      },
+      {
         test: /\.vue$/,
         use: ['vue-loader'],
       },

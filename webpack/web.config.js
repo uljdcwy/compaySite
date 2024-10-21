@@ -29,7 +29,7 @@ module.exports = {
         },
       },
       {
-        test: /\.(glb)/i,
+        test: /\.(glb|hdr)/i,
         type: 'asset/resource'
       },
       {

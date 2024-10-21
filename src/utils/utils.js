@@ -53,6 +53,50 @@ export const goRouter = (event, router, query, params, cb) => {
 
 /**
  * 
+ * @param {number} currentPage 
+ * @param {number} total  
+ * @returns {object}
+ */
+export const getPagination = (currentPage, total) => {
+    // 数据列表总数
+    // const dataLen = listData.length;
+    // 获取 total 页数
+    // const total = (dataLen % currentSize) ? (Math.floor(dataLen / currentSize) + 1) : dataLen / currentSize;
+    /**
+     * @type any
+     */
+    const paginationArray = [];
+
+    if(total < 7) {
+        paginationArray.push(...Array.from({ length: total }, (v, i) => i + 1));
+    }else{
+        if(currentPage > 4 && currentPage < (total - 3)){
+            paginationArray.push(1);
+            paginationArray.push("...");
+            paginationArray.push(currentPage-2);
+            paginationArray.push(currentPage-1);
+
+            paginationArray.push(currentPage);
+
+            paginationArray.push(currentPage+1);
+            paginationArray.push(currentPage+2);
+            paginationArray.push("...");
+            paginationArray.push(total);
+        } else if(currentPage <= 4) {
+            paginationArray.push(...Array.from({ length: 6 }, (v, i) => i + 1));
+            paginationArray.push("...");
+            paginationArray.push(total);
+        } else {
+            paginationArray.push(1);
+            paginationArray.push("...");
+            paginationArray.push(...Array.from({ length: 6 }, (v, i) => 5 + i));
+        };
+    }
+    return paginationArray;
+}
+
+/**
+ * 
  * @returns 
  */
 export const importVueFail = () => {

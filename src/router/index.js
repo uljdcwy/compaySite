@@ -19,6 +19,8 @@ const drawLine = () => import("@/components/threeJs/drawLine.vue").catch(importV
 const drawText = () => import("@/components/threeJs/drawText.vue").catch(importVueFail);
 // @ts-ignore
 const animate = () => import("@/components/threeJs/animate.vue").catch(importVueFail);
+// @ts-ignore
+const parkingLot = () => import("@/components/threeJs/parkingLot.vue").catch(importVueFail);
 
 
 const routes = [
@@ -29,6 +31,7 @@ const routes = [
     { path: '/drawLine', name: "drawLine", component: drawLine },
     { path: '/drawText', name: "drawText", component: drawText },
     { path: '/animate', name: "animate", component: animate },
+    { path: '/parkingLot', name: "parkingLot", component: parkingLot },
     { path: '/:catchAll(.*)', name: '404', component: page404 }
 ];
 

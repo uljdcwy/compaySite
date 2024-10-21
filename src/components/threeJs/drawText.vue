@@ -7,7 +7,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import * as THREE from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-import fontJson from "@public/font/wrrh123.json";
+import fontJson from "@public/font/wrrh.json";
 
 const snake = ref();
 
@@ -40,7 +40,7 @@ onMounted(() => {
 
 
 
-	const geometry = new TextGeometry( "text 中文字体", {
+	const geometry = new TextGeometry( "test font", {
 		font: fonts,
 		size: 80,
 		depth: 5,

@@ -82,10 +82,13 @@
                 </div>
             </div>
         </div>
+
+        <pagination></pagination>
     </div>
 </template>
 <script setup>
 import { onMounted } from "vue";
+import pagination from "@/components/pagination/index.vue"
 onMounted(() => {
 })
 </script>
@@ -100,20 +103,17 @@ onMounted(() => {
         @include margin(0, auto);
         @include threeEnv();
     }
-
     .product-list {
         @include gridShow();
         @include background(#000);
         @include padding(10);
     }
-
     .product-item {
         @include position(relative);
         @include boxSize(border-box);
         @include overflow();
         @include borderRadius(3);
         @include textAlign();
-
         .product-transform {
             @include height(calc(100%), "%");
             @include width(calc(100%), "%");
@@ -123,7 +123,6 @@ onMounted(() => {
             @include transform(rotateY(0),center center);
             @include threeEnv();
         }
-
         .product-transform-front {
             @include position(absolute);
             @include height(calc(100%), "%");
@@ -131,7 +130,6 @@ onMounted(() => {
             @include transform(translateZ(0px),center center);
             @include background(#0f0);
         }
-
         .product-transform-back {
             @include position(absolute);
             @include height(calc(100%), "%");
@@ -139,7 +137,6 @@ onMounted(() => {
             @include transform(translateZ(-0.1px) rotateY(-180deg),center center);
             @include background(#00f);
         }
-
         &:hover > .product-transform {
             @include transform(rotateY(180deg),center center);
         }

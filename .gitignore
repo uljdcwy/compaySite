@@ -10,5 +10,6 @@ dist/**
 /Services/config.ts
 /Services/routers/**
 .vs/**
-.temp_cache/**
 **/build/**
+.temp_cache/*
+!.temp_cache/.gitignore

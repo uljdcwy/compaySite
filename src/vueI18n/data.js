@@ -113,8 +113,8 @@ import banner3 from "@public/banner3.jpg";
                     query: { lang: 'zh' }
                 },
                 {
-                    title: "工程案例",
-                    link: "/animate?lang=zh",
+                    title: "车场模型",
+                    link: "/parkingLot?lang=zh",
                     name: "",
                     query: { lang: 'zh' }
                 },

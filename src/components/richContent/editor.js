@@ -171,15 +171,15 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
                     // 在最小索引中压入默认索引
                     minIndexArr.push(deafultIndex);
                     // 如果选择第二个是结束时 并且是向下选时
-                    if (selected[2] == "end" && direction == "down") {
-                        console.log(elem, "elem end down", textVdom)
-                    } else if (selected[2] == "end" && direction == "up") {
-                        console.log(elem, "elem end up", textVdom)
-                    } else if (selected[2] == "start" && direction == "down") {
-                        console.log(elem, "elem start down", textVdom)
-                    } else if (selected[2] == "start" && direction == "up") {
-                        console.log(elem, "elem start up", textVdom)
-                    };
+                    // if (selected[2] == "end" && direction == "down") {
+                    //     console.log(elem, "elem end down", textVdom)
+                    // } else if (selected[2] == "end" && direction == "up") {
+                    //     console.log(elem, "elem end up", textVdom)
+                    // } else if (selected[2] == "start" && direction == "down") {
+                    //     console.log(elem, "elem start down", textVdom)
+                    // } else if (selected[2] == "start" && direction == "up") {
+                    //     console.log(elem, "elem start up", textVdom)
+                    // };
 
                 } else if (selected[0] > 0 && selected[1] < textVdom.children.length) {
                     console.log("此情况只在选中一行内存在, 已处理些处BUG");
@@ -219,7 +219,6 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
             }
         });
 
-        console.log(resetAnchor, "resetAnchor", endAnchor, "endAnchor", startAnchor, "startAnchor", direction, "direction", anchorOffset,"anchorOffset")
         // 过虑空
         if (childrens) { parentVdom.children = childrens.filter((e) => e) };
         const minIndex = Math.min(...minIndexArr) - 1;
@@ -237,7 +236,6 @@ const clearSelectVdom = (astDom, selectAst = [], anchorNode, focusNode, lineDomA
 
     if (!astDom.children[0]) {
         const [rootDom, LeafDom] = createDefaultRootAndLeaf(deepTagArr);
-        console.log(rootDom, "rootDom", LeafDom, "LeafDom")
         appendChild(astDom.el, rootDom);
         startAnchor = LeafDom
         endAnchor = LeafDom
@@ -278,7 +276,7 @@ export const patchDragEnter = (astDom, contentText) => {
     let anchorOffset = mouseSelect.anchorOffset;
 
     
-
+    
     const selctedList = getSelectContent(astDom, []);
 
     // 格式化内容文本并返回一个数组
@@ -291,10 +289,10 @@ export const patchDragEnter = (astDom, contentText) => {
     if (selctedList.length == 1 && focusOffset < anchorOffset) {
         anchorOffset = focusOffset;
         anchorNode = focusNode;
-    }
+    };
+    console.log(anchorNode,"anchorNode",anchorOffset)
 
     const resultObj = clearSelectVdom(astDom, selctedList, anchorNode, focusNode, lineDomArr);
-    
     
     // 向上是与向下的锚区分，并且区别光标移动位置
 
@@ -363,10 +361,9 @@ export const patchDragEnter = (astDom, contentText) => {
                     removeChild(anchorNodeVdom);
                 } else {
                     defaultFirstElem = anchorNodeVdom.el; 
-                    console.log(defaultFirstElem,"defaultFirstElem", firstElem, "firstElem")
                     addTextContent(defaultFirstElem, firstElem);
                 }
-                console.log(defaultFirstElem,"defaultFirstElem", anchorNodeVdom, "anchorNodeVdom")
+                
                 // 如果是向下选， 开始锚不为真将开始定义为第一个 否则将结束锚定义为第一个
                 if(resultObj.direction == "down"){
                     resultObj.startAnchor = resultObj.startAnchor || defaultFirstElem;
@@ -422,7 +419,6 @@ export const patchDragEnter = (astDom, contentText) => {
                 }
 
                 
-                console.log(defaultLastElem,"defaultLastElem")
                 // 如果是向下选， 开始锚不为真将开始定义为最后一个 否则将结束锚定义为最后一个
                 if(resultObj.direction == "down"){
                     resultObj.endAnchor = resultObj.endAnchor || defaultLastElem;
@@ -920,7 +916,6 @@ const replaceSpanToTextElement = (elVDom) => {
     replaceChild(elVDom.parent.el, span, elVDom.el)
     const replaceJson = getDomJson(span, elVDom.parent.position);
     patchJson(elVDom, replaceJson);
-    console.log("移动位置",span,elVDom.parent.el,cloneText)
     moveCursorToEnd(elVDom.parent.el);
 };
 // 更新属性
@@ -1759,10 +1754,8 @@ export const getCurrentMouseElem = (astDom, anchorNode = winGetSelection().ancho
  * @returns 
  */
 const formatPaste = (pasetText) => {
-    console.log(pasetText,"pasetText")
     // let lineReg = /(.+)\r?\n/;
     let lineArr = pasetText.split(/\r?\n/);
-    console.log(lineArr,"lineArr");
     return lineArr;
 }
 

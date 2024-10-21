@@ -24,6 +24,7 @@ let astDom;
 /**@type {*} */
 const selectAst = [];
 const getEditorJson = (/** @type {any} */ e) => {
+  console.log(e.keyCode,"e.keyCode", e)
   if (e.ctrlKey && e.keyCode == "65" || e.ctrlKey && e.keyCode == "86" || !e.ctrlKey && e.keyCode == "17") {
     return;
   }
@@ -69,8 +70,8 @@ const unUnderlineSelects = () => {
  }
 
 const italicsSelects = () => {
-    selectAndUpdate(italics, selectAst);
- }
+  selectAndUpdate(italics, selectAst);
+}
 
 const unItalicsSelects = () => {
     selectAndUpdate(italics, selectAst, true);
@@ -127,7 +128,7 @@ const paste = (event) => {
         updateEnter(paste);
    } else {
      let file = getImage(event);
-    }
+   }
    return false;
 }
 
@@ -144,6 +145,13 @@ const dragend = (event) => {
     let dragText = event.dataTransfer.getData("text/plain");
     dragStatus = false;
     event.preventDefault();
+
+    // 清除选择内容
+    // resetSelectPosition(selectAst);
+    console.log(selectAst,"selectAst")
+    
+    // 
+
     updateEnter(dragText);
     return false;
 }
@@ -162,6 +170,43 @@ const dragleave = () => {
   dragStatus = false;
 }
 
+const copy = (e) => {
+  e.preventDefault();
+  const selectAst = getSelectContent(astDom, []);
+
+  let clipboardText = "";
+
+  if(selectAst.length > 1) {
+    let leafIdxFirst = selectAst[0].position;
+    let leafIdxLast = selectAst[selectAst.length - 1].position;
+    let dir = "";
+    console.log(leafIdxFirst, "leafIdxFirst", leafIdxLast, "leafIdxLast")
+    if (leafIdxFirst[1] > leafIdxLast[1] || (leafIdxFirst[1] == leafIdxLast[1] && leafIdxFirst[2] > leafIdxLast[2])) {
+      dir = "up";
+    } else {
+      dir = "down";
+    }
+    console.log(dir,"dir")
+    selectAst.forEach((elem, idx) => {
+
+    })
+
+  } else {
+    clipboardText = selectAst[0].children[0].children;
+  };
+
+  console.log(e, "e copy", selectAst);
+};
+
+const cut = (e) => {
+  e.preventDefault();
+  console.log(e, "e cut")
+}
+
+const setClipboard = (text) => {
+
+}
+
 
 
 onMounted(() => {
@@ -173,8 +218,9 @@ onMounted(() => {
   editMain.addEventListener("drop", dragend);
   editMain.addEventListener("dragleave", dragleave);
 
-
   editMain.addEventListener("paste", paste);
+  editMain.addEventListener("copy", copy);
+  editMain.addEventListener("cut", cut);
 
   editMain.addEventListener("mousedown", mousedown);
   window.addEventListener("mouseup", mouseup);
@@ -188,6 +234,8 @@ onUnmounted(() => {
   editMain.removeEventListener("compositionend", endAgentFn);
 
   editMain.removeEventListener("paste", paste);
+  editMain.removeEventListener("copy", copy);
+  editMain.removeEventListener("cut", cut);
 
   editMain.removeEventListener("dragenter", dragenter);
   editMain.removeEventListener("drop", dragend);

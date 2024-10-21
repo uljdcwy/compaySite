@@ -25,10 +25,7 @@
     transform-origin: $origin;
 }
 
-
-
 @mixin width ($w: null, $unit: null) {
-
     @if $unit {
         width: getUnit($w, $unit)
     }
@@ -53,12 +50,12 @@
     overflow: $type
 }
 
-@mixin gridShow ($colGap: 10px, $rowGap: 10px, $rowHeight: 260px, $columns: auto auto auto auto auto, $type: grid) {
+@mixin gridShow ($colGap: 10, $rowGap: 10, $rowHeight: 260, $columns: auto auto auto auto auto, $type: grid) {
     display: $type;
     grid-template-columns: $columns;
-    grid-gap: $colGap;
-    grid-row-gap: $rowGap;
-    grid-auto-rows: $rowHeight;
+    grid-gap: getUnit($colGap);
+    grid-row-gap: getUnit($rowGap);
+    grid-auto-rows: getUnit($rowHeight);
 }
 
 @mixin threeEnv ($deep: 900, $originL: center, $originT: center, $Env: preserve-3d) {
@@ -91,7 +88,7 @@
     }@else {
         border-width: getUnit($t);
     }
-    @if $type {
+    @if $c {
         border-color: $c;
     }
 }

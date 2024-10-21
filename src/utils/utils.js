@@ -89,7 +89,8 @@ export const getPagination = (currentPage, total) => {
         } else {
             paginationArray.push(1);
             paginationArray.push("...");
-            paginationArray.push(...Array.from({ length: 6 }, (v, i) => 5 + i));
+            const lastStart = total - 5;
+            paginationArray.push(...Array.from({ length: 6 }, (v, i) => lastStart + i));
         };
     }
     return paginationArray;

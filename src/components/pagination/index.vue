@@ -38,13 +38,12 @@ const vPaginationClass = {
 const changePage = (item) => {
     if(typeof item == "number" && item != currentPage.value){
         currentPage.value = item;
-        paginationList.value = getPagination(currentPage.value,10);
+        paginationList.value = getPagination(currentPage.value,20);
     }
 }
 
 onMounted(() => {
-    currentPage.value = Math.ceil(Math.random() * 10);
-    paginationList.value = getPagination(currentPage.value,10);
+    paginationList.value = getPagination(currentPage.value,20);
     // document.documentElement.style.setProperty('--border-color', '#f00');
 })
 </script>

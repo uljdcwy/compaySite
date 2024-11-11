@@ -64,10 +64,14 @@
             <div class="product-item">
                 <div class="product-transform">
                     <div class="product-transform-back">
-                        这是反面
+                        <a-link href="/article">
+                            这是反面
+                        </a-link>
                     </div>
                     <div class="product-transform-front">
-                        这是正面
+                        <a-link href="/article">
+                            这是正面
+                        </a-link>
                     </div>
                 </div>
             </div>
@@ -88,7 +92,11 @@
 </template>
 <script setup>
 import { onMounted } from "vue";
-import pagination from "@/components/pagination/index.vue"
+import pagination from "@/components/pagination/index.vue";
+
+const goArticle = () => {
+
+}
 onMounted(() => {
 })
 </script>
@@ -115,8 +123,8 @@ onMounted(() => {
         @include borderRadius(3);
         @include textAlign();
         .product-transform {
-            @include height(calc(100%), "%");
-            @include width(calc(100%), "%");
+            @include height(calc(100%), "customize");
+            @include width(calc(100%), "customize");
             @include background(#f00);
             @include position(absolute);
             @include transition(transform 0.3s ease);
@@ -125,15 +133,15 @@ onMounted(() => {
         }
         .product-transform-front {
             @include position(absolute);
-            @include height(calc(100%), "%");
-            @include width(calc(100%), "%");
+            @include height(calc(100%), "customize");
+            @include width(calc(100%), "customize");
             @include transform(translateZ(0px),center center);
             @include background(#0f0);
         }
         .product-transform-back {
             @include position(absolute);
-            @include height(calc(100%), "%");
-            @include width(calc(100%), "%");
+            @include height(calc(100%), "customize");
+            @include width(calc(100%), "customize");
             @include transform(translateZ(-0.1px) rotateY(-180deg),center center);
             @include background(#00f);
         }

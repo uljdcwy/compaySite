@@ -8,7 +8,8 @@ import * as THREE from 'three';
 import hdrImg from "@public/hdr/bgImage.hdr"
 import imgPng from "@public/rg.png"
 import person from "@public/person.jpg"
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { TeapotGeometry } from 'three/addons/geometries/TeapotGeometry.js';
 const parkingLot = ref();
 
 onMounted(async () => {
@@ -33,13 +34,24 @@ onMounted(async () => {
 
 
 
-    // 创建 OrbitControls
-    const controls = new OrbitControls(camera, renderer.domElement);
+
+
+
+
+
+
+
+
     
-    // 渲染循环
+
+
+    // 创建 OrbitControls 实例
+    const controls = new OrbitControls(camera, renderer.domElement);
+    // 设置控制器的目标点
+    controls.target.set(0, 0, 0); // 将目标点设置为立方体的中心
     function animate() {
         requestAnimationFrame(animate);
-        controls.update();
+        controls.update(); // 更新 OrbitControls
         renderer.render(scene, camera);
     }
     animate();

@@ -112,7 +112,9 @@
     }
 }
 
-
+@mixin maxWidth($n, $unit: px) {
+    max-width: getUnit($n, $unit);
+}
 
 @mixin position ($type: null, $t: null,$r: null,$b: null,$l: null) { 
     @if $type {
@@ -147,12 +149,13 @@
 @function getUnit($n, $unit: px) {
     @if $n == auto {
         @return auto;
-    } @else if $unit == "%" {
+    } @else if $unit == "customize" {
         @return $n;
     } @else if $n {
         @return $n + $unit;
     }
 }
+
 
 
 @mixin boxShadow ( $c: #ccc ,$r: 0, $b: 0, $s: 0, $W: 0, $d: null) {

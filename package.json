@@ -16,7 +16,7 @@
 		"build-cNode": "webpack --config ./webpack/webpack.prod.cNode.js",
 		"dev-electron": "electron src/electron.js development",
 		"build-electron": "electron-builder",
-		"server-docker-compose": "set dockerCommand='npm run build-server' && docker-compose up compaysite_server",
+		"server-docker-compose": "set dockerCommand='npm run build-ssr-server' && docker-compose up compaysite_server",
 		"build-docker-compose": "set dockerCommand='npm run build' && docker-compose up compaysite_build",
 		"dev-docker-compose": "set dockerCommand='npm run dev' && docker-compose up compaysite_dev",
 		"build-font-json": "node transfromFont.js"

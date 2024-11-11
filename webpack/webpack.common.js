@@ -1,6 +1,8 @@
 const path = require("path");
 let basePath = process.cwd();
 
+console.log(path.resolve(basePath, './public/'),"path.resolve(basePath, './public/')")
+
 module.exports = {
   resolve: {
     extensions: ['.js', '.mjs', '.vue', '.ts', '.node', '.d.ts', '.json'],

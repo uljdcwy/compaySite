@@ -25,8 +25,8 @@ const t = useI18n();
 </script>
 
 <style lang="scss" scoped="scoped">
-@import "@/scss/class.scss";
-@import "@/scss/theme.scss";
+@use "@/scss/class" as *;
+@use "@/scss/theme" as *;
 
 .context-block {
     background-image: v-bind(t('vueIndex.imageTextBlock.bgUrl'));

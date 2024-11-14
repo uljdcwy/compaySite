@@ -7,10 +7,10 @@ let basePath = process.cwd();
 module.exports = {
   target: "web",
   output: {
-      filename: './js/[name].[hash:6].js',
+      filename: './js/[name].[contenthash:6].js',
       path: path.resolve(basePath, "web"),
       publicPath: "/",
-      chunkFilename: "[name].[hash:6].js",
+      chunkFilename: "[name].[contenthash:6].js",
       clean: true,
   },
   plugins: [new VueLoaderPlugin()],
@@ -25,7 +25,7 @@ module.exports = {
           },
         },
         generator: {
-          filename: 'images/[hash][ext][query]'
+          filename: 'images/[contenthash][ext][query]'
         },
       },
       {
@@ -45,7 +45,7 @@ module.exports = {
           },
         },
         generator: {
-          filename: 'font/[hash][ext][query]',
+          filename: 'font/[contenthash][ext][query]',
         },
       }
     ],

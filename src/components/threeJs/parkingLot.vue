@@ -10,6 +10,7 @@ import imgPng from "@public/rg.png"
 import person from "@public/person.jpg"
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TeapotGeometry } from 'three/addons/geometries/TeapotGeometry.js';
+import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 const parkingLot = ref();
 
 onMounted(async () => {
@@ -36,13 +37,10 @@ onMounted(async () => {
 
 
 
-
-
-
-
-
-
     
+
+
+
 
 
     // 创建 OrbitControls 实例

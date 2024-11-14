@@ -101,8 +101,8 @@ onMounted(() => {
 })
 </script>
 <style lang="scss" scoped="scoped">
-    @import "@/scss/class.scss";
-    @import "@/scss/theme.scss";
+    @use "@/scss/class" as *;
+    @use "@/scss/theme" as *;
     .product-container {
         @include padding(15, 0);
     }

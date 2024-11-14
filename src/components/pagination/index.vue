@@ -48,8 +48,8 @@ onMounted(() => {
 })
 </script>
 <style lang="scss" scoped>
-    @import "@/scss/class.scss";
-    @import "@/scss/theme.scss";
+    @use "@/scss/class" as *;
+    @use "@/scss/theme" as *;
     .pagination-container{
         @include width($mainWidth);
         @include margin(0, auto);

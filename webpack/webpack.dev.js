@@ -51,7 +51,6 @@ module.exports = merge(common, webConfig, {
         });
         return pages;
     },
-    devtool: 'source-map',
     mode: "development",
     plugins: PLUS,
     output: {
@@ -61,7 +60,16 @@ module.exports = merge(common, webConfig, {
         rules: [
             {
                 test: /\.(sc|sa)ss$/i,
-                use: ['style-loader', 'css-loader', 'sass-loader', 'postcss-loader'],
+                use: ['style-loader', 'css-loader', 
+                {
+                    loader: 'sass-loader', // 编译 Sass
+                    options: {
+                        sassOptions: {
+                            api: 'modern-compiler', // 使用现代编译器 API
+                            quietDeps: true, // 忽略来自 node_modules 的弃用警告
+                        },
+                    },
+                }],
                 exclude: /(node_modules|public)/,
                 include: [
                     path.resolve(basePath, './src')
@@ -69,7 +77,7 @@ module.exports = merge(common, webConfig, {
             },
             {
                 test: /\.less$/i,
-                use: ['style-loader', 'css-loader', 'less-loader', 'postcss-loader'],
+                use: ['style-loader', 'css-loader', 'less-loader'],
                 exclude: /(node_modules|public)/,
                 include: [
                     path.resolve(basePath, 'src')
@@ -77,12 +85,18 @@ module.exports = merge(common, webConfig, {
             },
             {
                 test: /\.css$/i,
-                use: ['style-loader', 'css-loader', 'postcss-loader'],
+                use: ['style-loader', 'css-loader'],
                 exclude: /(node_modules|public)/,
                 include: [
                     path.resolve(basePath, './src')
                 ]
             }
         ]
-    }
+    },
+    ignoreWarnings: [
+      (/** @type {{ message: string | string[]; }} */ warning) => {
+        // onsole.log(warning,"warning")
+        return warning.message.includes('The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0')
+      }
+    ]
 });

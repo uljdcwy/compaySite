@@ -1,7 +1,7 @@
 const path = require("path");
 let basePath = process.cwd();
 
-console.log(path.resolve(basePath, './public/'),"path.resolve(basePath, './public/')")
+console.log(process.argv0,"process.env.NODE_ENV")
 
 module.exports = {
   resolve: {
@@ -42,7 +42,7 @@ module.exports = {
         test: /\.js$/i,
         use: {
           loader: 'babel-loader',
-          options: {
+          options: (process.argv0 == "node") ? {} : {
             presets: ['@babel/preset-env'],
             plugins: ['@babel/plugin-proposal-object-rest-spread']
           }

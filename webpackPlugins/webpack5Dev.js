@@ -9,7 +9,7 @@ class DevHtml {
     compiler.hooks.done.tap('DevHtml ', (/** @type {{ compilation: { assets: any; }; }} */ compilation, /** @type {any} */ callback) => {
 
       Object.keys(compilation.compilation.assets).map((el, idx) => {
-        console.log(el,"el")
+        // console.log(el,"el")
         if (el.indexOf("/js/") > -1 && el.indexOf(".map") < 0) {
           let str = `<!doctype html>
           <html lang="en" manifest="app.appcache">

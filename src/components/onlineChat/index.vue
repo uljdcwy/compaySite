@@ -91,8 +91,8 @@ const openChat = () => {
 
 </script>
 <style lang="scss" scoped>
-@import "@/scss/class.scss";
-@import "@/scss/theme.scss";
+@use "@/scss/class" as *;
+@use "@/scss/theme" as *;
 
 :deep(.text-span) {
     display: inline-block;

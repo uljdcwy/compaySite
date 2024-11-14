@@ -27,8 +27,8 @@ const route = useRoute();
 const t = useI18n();
 </script>
 <style lang="scss" scoped="scoped">
-@import "@/scss/class.scss";
-@import "@/scss/theme.scss";
+@use "@/scss/class" as *;
+@use "@/scss/theme" as *;
 
 .container-about {
     @include width($mainWidth);

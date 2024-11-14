@@ -141,4 +141,9 @@
             color: $articlePageTipsColor;
         }
     }
+    @media screen and (max-width: 1024px) {
+        .container-article{
+            @include width(calc(100%), "customize");
+        }
+    }
 </style>

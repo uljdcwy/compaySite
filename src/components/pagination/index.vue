@@ -87,4 +87,10 @@ onMounted(() => {
             border-color: $hoverColor;
         }
     }
+    
+    @media screen and (max-width: 1024px) {
+        .pagination-container{
+            @include width(calc(100%), "customize");
+        }
+    }
 </style>

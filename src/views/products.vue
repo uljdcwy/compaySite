@@ -86,8 +86,9 @@
                 </div>
             </div>
         </div>
-
-        <pagination></pagination>
+        <div class="pagination-box">
+            <pagination></pagination>
+        </div>
     </div>
 </template>
 <script setup>
@@ -103,6 +104,9 @@ onMounted(() => {
 <style lang="scss" scoped="scoped">
     @use "@/scss/class" as *;
     @use "@/scss/theme" as *;
+    .pagination-box{
+        text-align: center
+    }
     .product-container {
         @include padding(15, 0);
     }
@@ -147,6 +151,16 @@ onMounted(() => {
         }
         &:hover > .product-transform {
             @include transform(rotateY(180deg),center center);
+        }
+    }
+    
+    @media screen and (max-width: 1024px) {
+        .products-3d{
+            @include width(calc(100%), "customize");
+            box-sizing: border-box
+        }
+        .product-list{
+            grid-template-columns: auto auto
         }
     }
 </style>

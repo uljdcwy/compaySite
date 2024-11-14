@@ -64,6 +64,8 @@ module.exports = merge(common, webConfig, {
                 {
                     loader: 'sass-loader', // 编译 Sass
                     options: {
+                        implementation: require('sass'),
+                        sourceMap: false,  // 禁用 source map
                         sassOptions: {
                             api: 'modern-compiler', // 使用现代编译器 API
                             quietDeps: true, // 忽略来自 node_modules 的弃用警告

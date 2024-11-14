@@ -74,5 +74,11 @@ module.exports = {
           exclude: "/node_modules/" // 排除node-modules目录
       },
     ],
-  }
+  },
+  ignoreWarnings: [
+    (/** @type {{ message: string | string[]; }} */ warning) => {
+      // onsole.log(warning,"warning")
+      return warning.message.includes('The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0')
+    }
+  ]
 }

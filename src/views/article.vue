@@ -142,8 +142,24 @@
         }
     }
     @media screen and (max-width: 1024px) {
+        
+        .page-next,
+        .page-prev{
+            @include width(calc(100%), "customize");
+        }
         .container-article{
             @include width(calc(100%), "customize");
+            display: block;
+        }
+        .article-page{
+            display: block;
+        }
+        
+        .page-next{
+            @include margin(15,auto,auto,auto);
+        }
+        .article-right{
+            display: none;
         }
     }
 </style>

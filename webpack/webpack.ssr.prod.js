@@ -85,15 +85,17 @@ module.exports = merge(common, webConfig, {
                 // scss加载
                 test: /\.(sc|sa|)ss$/i,
                 use: [{ loader: MiniCssExtractPlugin.loader, options: { publicPath: './' } }, 'css-loader', 
-                {
+                    {
                         loader: 'sass-loader', // 编译 Sass
                         options: {
+                            implementation: require('sass'),
+                            sourceMap: false,  // 禁用 source map
                             sassOptions: {
                                 api: 'modern-compiler', // 使用现代编译器 API
                                 quietDeps: true, // 忽略来自 node_modules 的弃用警告
                             },
                         },
-                }, 'postcss-loader'],// 'clear-print',
+                    }, 'postcss-loader'],// 'clear-print',
                 exclude: /(node_modules|public)/,
                 include: [
                     path.resolve(basePath, './src')

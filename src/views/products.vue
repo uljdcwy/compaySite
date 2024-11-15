@@ -1,99 +1,37 @@
 <template>
     <div class="product-container">
         <div class="products-3d product-list">
-            <div class="product-item">
+            <div class="product-item" v-for="(item, idx) in JSON.parse(decodeURIComponent($t('vueProducts.list')))">
                 <div class="product-transform">
                     <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        <a-link href="/article">
-                            这是反面
+                        <h5 class="product-title">
+                            {{ item.title }}
+                        </h5>
+                        <a-link :href="item.link">
+                            {{ item.text }}
                         </a-link>
                     </div>
                     <div class="product-transform-front">
-                        <a-link href="/article">
-                            这是正面
-                        </a-link>
-                    </div>
-                </div>
-            </div>
-            <div class="product-item">
-                <div class="product-transform">
-                    <div class="product-transform-back">
-                        这是反面
-                    </div>
-                    <div class="product-transform-front">
-                        这是正面
+                        <cp-image width="100%" height="100%" :src="item.image" :alt="item.alt"></cp-image>
                     </div>
                 </div>
             </div>
         </div>
         <div class="pagination-box">
-            <pagination></pagination>
+            <pagination @currentChange="currentChange"></pagination>
         </div>
     </div>
 </template>
 <script setup>
 import { onMounted } from "vue";
 import pagination from "@/components/pagination/index.vue";
+import { useI18n } from "vue-i18n";
+import cpImage from "@/components/images/index.vue"
+const t = useI18n();
+
+const currentChange = (index) => {
+    console.log("index 当前页面变化事件", index)
+}
 
 const goArticle = () => {
 
@@ -109,15 +47,16 @@ onMounted(() => {
     }
     .product-container {
         @include padding(15, 0);
+        background-color: $aboutBg;
     }
     .products-3d {
         @include width($mainWidth);
         @include margin(0, auto);
         @include threeEnv();
+        background-color: $aboutMainBg;
     }
     .product-list {
         @include gridShow();
-        @include background(#000);
         @include padding(10);
     }
     .product-item {
@@ -129,7 +68,6 @@ onMounted(() => {
         .product-transform {
             @include height(calc(100%), "customize");
             @include width(calc(100%), "customize");
-            @include background(#f00);
             @include position(absolute);
             @include transition(transform 0.3s ease);
             @include transform(rotateY(0),center center);
@@ -140,18 +78,24 @@ onMounted(() => {
             @include height(calc(100%), "customize");
             @include width(calc(100%), "customize");
             @include transform(translateZ(0px),center center);
-            @include background(#0f0);
+            background-color: $aboutBg;
         }
         .product-transform-back {
             @include position(absolute);
             @include height(calc(100%), "customize");
             @include width(calc(100%), "customize");
             @include transform(translateZ(-0.1px) rotateY(-180deg),center center);
-            @include background(#00f);
+            @include font(12);
+            background-color: $aboutBg;
+            @include padding(5);
+            box-sizing: border-box;
         }
         &:hover > .product-transform {
             @include transform(rotateY(180deg),center center);
         }
+    }
+    .product-title{
+        @include font(14);
     }
     
     @media screen and (max-width: 1024px) {

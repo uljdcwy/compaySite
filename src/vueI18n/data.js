@@ -133,6 +133,60 @@ import banner3 from "@public/banner3.jpg";
             logoUrl: logo,
             searchPlaceholder: "请输入搜索关键词",
         },
+        vueProducts: {
+            title: "产品中心",
+            list: encodeURIComponent(JSON.stringify([
+                {
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    title: "测试内容标题",
+                    link: "/article",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },
+            ])),
+        },
         vueIndex: {
             title: '标题',
             author: ' 曾细亚',
@@ -303,6 +357,60 @@ import banner3 from "@public/banner3.jpg";
             tel: "0755-23446330",
             logoUrl: logo,
             searchPlaceholder: "Enter search keywords",
+        },
+        vueProducts: {
+            title: "产品中心",
+            list: encodeURIComponent(JSON.stringify([
+                {
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },{
+                    image: "http://www.sc-qianye.com/templates/main/images/section1_icon1.png",
+                    text: "提示文字",
+                    link: "/article",
+                    title: "测试内容标题",
+                    alt: "去文章页"
+                },
+            ])),
         },
         vueIndex: {
             title: 'title ',

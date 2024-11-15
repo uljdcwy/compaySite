@@ -14,7 +14,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { getPagination } from "@/utils/utils.js";
-
+const emit = defineEmits(['current-change'])
 const paginationList = ref([]);
 const currentPage = ref(0);
 
@@ -39,6 +39,7 @@ const changePage = (item) => {
     if(typeof item == "number" && item != currentPage.value){
         currentPage.value = item;
         paginationList.value = getPagination(currentPage.value,20);
+        emit("current-change", currentPage.value);
     }
 }
 
@@ -55,16 +56,18 @@ onMounted(() => {
         @include margin(0, auto);
     }
     .pagination-list{
-        display: flex;
         @include padding(10, 0);
         .pagination-item{
             @include border(solid, $borderColor, 1);
-            @include padding(3, 8);
+            @include padding(3, 0);
             @include borderRadius(2);
             @include font(14);
+            @include width(30);
+            @include margin(0, 5);
+            display:inline-block;
+            text-align: center;
             color: $linkColor;
             cursor: pointer;
-            @include margin(0, 5);
             user-select: none;
         }
         .pagination-diabled{
@@ -91,6 +94,11 @@ onMounted(() => {
     @media screen and (max-width: 1024px) {
         .pagination-container{
             @include width(calc(100%), "customize");
+        }
+    .pagination-list{
+        .pagination-item{
+                @include width(25);
+            }
         }
     }
 </style>

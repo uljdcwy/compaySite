@@ -25,6 +25,10 @@ export const getUrl = (routeName) => {
         case "index":
             url = "/adminIndex/getData";
             break;
+        case "/products":
+        case "products":
+            url = "/adminProducts/getData";
+            break;
         case "/about":
         case "about":
             url = "/adminAbout/getData";
@@ -46,6 +50,10 @@ export const getPageI18nName = (routeUrl) => {
         case "/":
         case "index":
             name = "vueIndex";
+            break;
+        case "/products":
+        case "products":
+            name = "vueProducts";
             break;
         case "/about":
         case "about":

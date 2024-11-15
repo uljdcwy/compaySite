@@ -1,6 +1,8 @@
 <template>
-  <vue-swiper></vue-swiper>
-  <count-block></count-block>
+  <div class="index-container">
+    <vue-swiper></vue-swiper>
+    <count-block></count-block>
+  </div>
 </template>
 <script setup>
 import { onMounted } from "vue";

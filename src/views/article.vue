@@ -53,11 +53,13 @@
                 </dl>
             </div>
         </div>
+        <tiptap-edit></tiptap-edit>
     </div>
 </template>
 <script setup>
+    import tiptapEdit from "@/components/richContent/tiptap.vue"
     import { ref, onMounted } from "vue";
-    const articleTitle = ref("内容标题")
+    const articleTitle = ref("内容标题");
 
 </script>
 <style lang="scss" scoped>

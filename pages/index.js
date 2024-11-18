@@ -1,6 +1,8 @@
 import { createApp } from "@/createSSRApp/app.js"
+import "@public/iconfont.js";
 import "@/scss/customize.scss";
 import "@/scss/theme.scss";
+
 // import VConsole from 'vconsole';
 
 if(process.env.NODE_ENV == "development"){

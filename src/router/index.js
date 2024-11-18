@@ -14,7 +14,7 @@ const products = () => import("@/views/products.vue").catch(importVueFail);
 // @ts-ignore
 const article = () => import("@/views/article.vue").catch(importVueFail);
 // @ts-ignore
-const snake = () => import("@/components/threeJs/snake.vue").catch(importVueFail);
+const solution = () => import("@/views/solution.vue").catch(importVueFail);
 // @ts-ignore
 const drawLine = () => import("@/components/threeJs/drawLine.vue").catch(importVueFail);
 // @ts-ignore
@@ -30,7 +30,7 @@ const routes = [
     { path: '/about', name: "about", component: about },
     { path: '/products', name: "products", component: products },
     { path: '/article', name: "article", component: article },
-    { path: '/snake', name: "snake", component: snake },
+    { path: '/solution', name: "solution", component: solution    },
     { path: '/drawLine', name: "drawLine", component: drawLine },
     { path: '/drawText', name: "drawText", component: drawText },
     { path: '/animate', name: "animate", component: animate },

@@ -78,7 +78,7 @@ onMounted(() => {
             @include height(calc(100%), "customize");
             @include width(calc(100%), "customize");
             @include transform(translateZ(0px),center center);
-            background-color: $aboutBg;
+            background-color: $producesBlockBg;
         }
         .product-transform-back {
             @include position(absolute);
@@ -86,8 +86,8 @@ onMounted(() => {
             @include width(calc(100%), "customize");
             @include transform(translateZ(-0.1px) rotateY(-180deg),center center);
             @include font(12);
-            background-color: $aboutBg;
             @include padding(5);
+            background-color: $producesBlockBg;
             box-sizing: border-box;
         }
         &:hover > .product-transform {

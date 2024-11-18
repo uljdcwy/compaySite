@@ -108,7 +108,7 @@ import banner3 from "@public/banner3.jpg";
                 },
                 {
                     title: "解决方案",
-                    link: "/snake?lang=zh",
+                    link: "/solution?lang=zh",
                     name: "",
                     query: { lang: 'zh' }
                 },

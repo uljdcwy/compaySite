@@ -1,13 +1,21 @@
 <template>
   <div class="edit-rich">
     <div class="tool-bar">
-      <span class="tool-span font">
-        <input readonly type="text" v-model="currentFont" class="readonly-font-family">
-        <ul class="family-list">
+      <span class="tool-span font" :class="{'is-active': toolFamily}">
+        <input readonly type="text" v-model="currentFont" class="readonly-font-family" @click="selectFontStaus = true" @blur="blurFontSelect">
+        <ul class="family-list" v-show="selectFontStaus">
           <li class="family-item" v-for="(item, idx) in fontFamilyList" @click="setFontFamily(item.value)">
             {{ item.value }}
           </li>
         </ul> 
+      </span>
+      <span class="tool-span title" :class="{'is-active': toolTitle}">
+        <input class="read-title" readonly v-model="currentTitle" @click="selectTitleStaus = true" @blur="blurTitleSelect"/>
+        <ul class="title-list" v-show="selectTitleStaus">
+          <li class="title-item" v-for="(item, idx) in 6" @click="setTitle(idx)">
+            H{{ idx + 1 }}
+          </li>
+        </ul>
       </span>
       <span class="tool-span bold" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor?.isActive('bold') }">
         <svg class="icon" aria-hidden="true">
@@ -37,7 +45,32 @@
   import TextStyle from '@tiptap/extension-text-style'
 
   const currentFont = ref("none");
+  const toolFamily = ref(false);
   const selectFontStaus = ref(false);
+  const selectTitleStaus = ref(false);
+  const toolTitle = ref(false);
+  const currentTitle = ref("H1")
+
+  const timeoutFalse = (falseObject) => {
+    setTimeout(() => {
+      falseObject.value = false;
+    }, 200)
+  };
+
+  const blurTitleSelect = () => {
+    timeoutFalse(selectTitleStaus);
+  }
+
+  const blurFontSelect = () => {
+    timeoutFalse(selectFontStaus);
+  };
+
+  const setTitle = (idx) => {
+    const level = (idx + 1);
+    currentTitle.value = "H" + level;
+    selectTitleStaus.value = false;
+    editor.value.chain().focus().setNode('heading', { level: level }).run();
+  };
 
   const fontFamilyList = [
     {
@@ -54,31 +87,37 @@
       value: "cursive"
     }
   ];
-
+    
   const checkTextStyle = ({ editor }) => {
-    // 获取光标位置的所有样式
-    const textStyleAttributes = editor.getAttributes('textStyle');
+    const textStyleAttributes = editor.getAttributes('textStyle'); // // 获取光标位置的所有样式
+    console.log(textStyleAttributes,"textStyleAttributes",editor)
+    let familyFontStatus = false;
     if(textStyleAttributes.fontFamily){
-      // console.log('光标位置的所有样式:', textStyleAttributes);
-      // 字体更新
-      currentFont.value = textStyleAttributes.fontFamily;
-    }else if(currentFont.value != "none"){
-      // 字体更新
-      currentFont.value = "none";
+      familyFontStatus = true;
+      currentFont.value = textStyleAttributes.fontFamily; // 字体更新
+    }else if(typeof currentFont.value == "string" && currentFont.value != "none"){
+      currentFont.value = "none"; // 字体更新
     }
-    // // 获取当前的字体状态
-    // editor.isActive('textStyle', { fontFamily: editor.getAttributes('textStyle').fontFamily });
-  }
-  
+    toolFamily.value = familyFontStatus;
 
+    const textHeadingAttributes = editor.getAttributes('heading'); // // 获取光标位置的所有样式
+    let toolTitleStatus = false
+    if(textHeadingAttributes.level){
+      toolTitleStatus = true;
+      currentTitle.value = "H" + textHeadingAttributes.level;
+    }else if(!textHeadingAttributes.level && currentTitle.value != "H1"){
+      currentTitle.value = "H1"
+    }
+    toolTitle.value = toolTitleStatus;
+  }
   onMounted(() => {
   })
 
   const setFontFamily = (str) => {
-    console.log(str,"str")
     if(str == "none"){
       editor.value.chain().focus().unsetFontFamily().run();
     }else{
+      toolFamily.value = true;
       editor.value.chain().focus().setFontFamily(str).run();
     }
     currentFont.value = str;
@@ -113,22 +152,64 @@
       background-color: $editToolHoverBgColor;
     }
   }
-  .readonly-font-family{
-    @include padding(0, 5, 0, 0);
-    @include maxWidth(calc(100% - getUnit(10)), 'customize');
-    @include height(calc(getUnit($editToolHeight) - getUnit(10)), 'customize');
+  .is-active{
+    &::after{
+      border-top-color: $editToolHoverBgColor !important;
+    }
+    &::before{
+      border-bottom-color: $editToolHoverBgColor !important;
+    }
+  };
+  .read-title{
+    outline: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  .readonly-font-family,
+  .read-title{
+    @include padding(0, 0, 0, 5);
     @include border(solid, transparent, 0);
+    @include position(absolute, auto, auto, 0, 0);
+    @include width(100%, 'customize');
+    @include height(100%, 'customize');
+    @include font(15);
     outline: none;
     background: transparent;
     cursor: pointer;
     vertical-align: text-bottom;
     box-sizing: border-box;
+    font-weight: bold;
   }
-  .tool-span.font:hover .readonly-font-family{
+  .font .readonly-font-family{
+    @include padding(0, 18, 0, 5);
+  }
+  .title{
+    position: relative;
+    vertical-align: bottom;
+  }
+  .title-list{
+    @include position(absolute, $editToolHeight, 0, auto, auto);
+    @include width(100%, 'customize');
+    background-color: $editToolBgColor;
+    z-index: 11;
+    @include font(12);
+  }
+  .title-item,
+  .family-item{
+    &:hover{
+      background-color: $editToolHoverBgColor;
+    }
+  }
+  .family-item{
+    white-space: nowrap;
+    text-align: left;
+    @include padding(0, 0, 0, 5);
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   .tool-span.font::after{
     @include border(solid, transparent, 5);
-    @include position(absolute, auto, 5, 4, auto);
+    @include position(absolute, auto, 5, 2, auto);
     display: block;
     content: "";
     height: 0;
@@ -137,7 +218,7 @@
   }
   .tool-span.font::before{
     @include border(solid, transparent, 5);
-    @include position(absolute, 4, 5, auto, auto);
+    @include position(absolute, 5, 5, auto, auto);
     display: block;
     content: "";
     height: 0;
@@ -145,28 +226,26 @@
     border-bottom-color: $borderColor;
   }
   .family-list{
-    display: none;
     @include font(12);
     @include position(absolute, $editToolHeight, 0, auto, auto);
     @include boxShadow(#ccc, 0, 0, 5, 1);
+    @include width(100%, 'customize');
     background-color: $editToolBgColor;
     z-index: 100;
-
   }
   .tool-span.font{
     @include width($editToolWidth * 3);
     @include padding(0, 5);
     position: relative;
-    &:hover{
-      .family-list{
-        display: block;
-      }
-    }
+    vertical-align: bottom;
   }
   .tool-span.is-active{
     background-color: $editToolActiveBgColor;
     .icon{
       color: $editToolActiveFontColor
+    }
+    input{
+      color: $editToolActiveFontColor;
     }
   }
   .icon {

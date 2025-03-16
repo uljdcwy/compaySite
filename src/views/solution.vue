@@ -245,8 +245,8 @@
 </script>
 <style lang="scss" scoped="scoped">
     .solution{
-        width: calc(100vw - getUnit(17));
-        height: calc(100vh - getUnit(17));
+        width: calc(100vw - 17px);
+        height: calc(100vh - 17px);
     }
 </style>
   

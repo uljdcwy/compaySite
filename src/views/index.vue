@@ -8,6 +8,7 @@
     <left-right></left-right>
     <image-text></image-text>
     <image-texta></image-texta>
+    <image-textb></image-textb>
   </div>
 </template>
 <script setup>
@@ -19,6 +20,7 @@ import three1List from "@/components/middle/threeList/middle2.vue";
 import three2List from "@/components/middle/threeList/middle3.vue";
 import imageText from "@/components/middle/imageText/middle5.vue";
 import leftRight from "@/components/middle/leftTextRightImage/middle4.vue";
+import imageTextb from "@/components/middle/imageText/middle7.vue";
 import imageTexta from "@/components/middle/imageText/middle6.vue";
 import imageTextBlock from "@/components/home/itemImageText.vue";
 

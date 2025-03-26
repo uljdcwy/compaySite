@@ -9,6 +9,7 @@
     <image-text></image-text>
     <image-texta></image-texta>
     <image-textb></image-textb>
+    <three3-list></three3-list>
   </div>
 </template>
 <script setup>
@@ -18,6 +19,7 @@ import countBlock from "@/components/home/itemCountBlock.vue";
 import threeList from "@/components/middle/threeList/middle1.vue";
 import three1List from "@/components/middle/threeList/middle2.vue";
 import three2List from "@/components/middle/threeList/middle3.vue";
+import three3List from "@/components/middle/threeList/middle8.vue";
 import imageText from "@/components/middle/imageText/middle5.vue";
 import leftRight from "@/components/middle/leftTextRightImage/middle4.vue";
 import imageTextb from "@/components/middle/imageText/middle7.vue";

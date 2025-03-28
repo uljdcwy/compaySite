@@ -11,6 +11,7 @@
     <image-textb></image-textb>
     <image9-text></image9-text>
     <three3-list></three3-list>
+    <image10-text></image10-text>
   </div>
 </template>
 <script setup>
@@ -23,6 +24,7 @@ import three2List from "@/components/middle/threeList/middle3.vue";
 import three3List from "@/components/middle/threeList/middle8.vue";
 import imageText from "@/components/middle/imageText/middle5.vue";
 import image9Text from "@/components/middle/imageText/middle9.vue";
+import image10Text from "@/components/middle/imageText/middle10.vue";
 import leftRight from "@/components/middle/leftTextRightImage/middle4.vue";
 import imageTextb from "@/components/middle/imageText/middle7.vue";
 import imageTexta from "@/components/middle/imageText/middle6.vue";
